@@ -1,0 +1,24 @@
+#History files
+.Rhistory
+.Rapp.history
+
+# RStudio files
+.Rproj.user/
+
+#Specific data
+/aff_download
+/CAMS_ZIPCODE_PARCEL_SPECIFIC
+/LANeighborhoodCouncils
+/tl_2013_06_tabblock
+/tl_2013_06_tract
+/tl_2013_us_zcta510
+tl_2013_us_zcta510.zip
+tl_2013_06_tract.zip
+tl_2013_06_tabblock.zip
+/MapExplorationsSummary_files
+/MapExplorationsSummary_cache
+LAzips.*
+LAtracts.*
+LANeighborhoodCouncils.zip
+LAblocks.*
+CAMS_ZIPCODE_PARCEL_SPECIFIC.zip
