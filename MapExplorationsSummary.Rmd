@@ -44,9 +44,9 @@ map1 <- ggmap(map1)
 map1
 ```
 
-### Census tracks
+### Census tracts
 
-For my smallest spatial aggregation unit, I'm using Census trackts. Previously, I was using blocks, but they were way too small. Essentially, they are *blocks* like the blocks on a street.
+For my smallest spatial aggregation unit, I'm using Census tracts. Previously, I was using blocks, but they were way too small. Essentially, they are *blocks* like the blocks on a street.
 
 The shapefile data is provided by the Census, so it's reasonably easy to load the shapefiles and plot them over the base map. 
 ```{r}
