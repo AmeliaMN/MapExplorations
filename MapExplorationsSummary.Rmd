@@ -160,11 +160,17 @@ zipsmap + colorscheme
 
 I want to have data with more coverage than the Korean restaurants, so I'm going to use that streetlight data I got about LA a while back. It doesn't make sense to plot absolute numbers (didn't really make sense with the restaurants, either) so I need to calculate lights per person in the particular spatial area. This means I need some population data.
 
-```{r}
+```{r, echo=TRUE}
 streetlights <- read.csv("../Streetlights/STLIGHT.csv")
-
+head(streetlights)
+```
+Soooo, the names are wrong on this data. Let's switch that.
+```{r}
+streetlights <- rename(streetlights, latitude=Longitude, longitude=Latitude)
+```
+```{r}
 rownames(streetlights) <- NULL
-coordinates(streetlights) <- c("Latitude","Longitude")
+coordinates(streetlights) <-~longitude+latitude
 proj4string(streetlights) <- CRS("+proj=longlat +datum=WGS84")
 ```
 
@@ -207,3 +213,21 @@ For this data source, I worked from the largest spatial area to the smallest, so
 ## Takeaways
 
 This task is pretty hard in R. Getting the shapefiles loaded, and then verifying they loaded properly, is a task in and of itself. Then, getting the data to aggregate properly is also pretty hard. It's clear that some more abstractions would make this easier, for example if you could visually see the polygons and points on top of one another, demo on one spatial area what you wanted it to do, and have the system repeat the action n times where n is the number of polygons. This type of view would also let you more easily see what was getting aggregated. 
+
+## Earthquake data
+
+```{r}
+earthquakes <- read.table("2014earthquakes.catalog", sep="")
+names(earthquakes) <- c("Date", "Time", "ET", "MAG", "M", "lat", "long", "depth", "Q", "EVID", "NPH", "NGRM")
+```
+
+```{r}
+rownames(earthquakes) <- NULL
+coordinates(earthquakes) <-~long+lat
+proj4string(earthquakes) <- CRS("+proj=longlat +datum=WGS84")
+```
+
+```{r}
+#quakesZip <- over(y=zips, x=earthquakes)
+#numLightsZip<- summarise(group_by(quakesZip, ZIPCODE), numlights=n())
+```
