@@ -142,7 +142,6 @@ zips <- spTransform(zips, CRS("+proj=longlat +datum=WGS84"))
 zips@data$id = rownames(zips@data)
 zips.points = fortify(zips, region="id")
 zips.df = inner_join(zips.points, zips@data, by="id")
-
 ```
 
 ```{r}
@@ -228,6 +227,12 @@ proj4string(earthquakes) <- CRS("+proj=longlat +datum=WGS84")
 ```
 
 ```{r}
-#quakesZip <- over(y=zips, x=earthquakes)
-#numLightsZip<- summarise(group_by(quakesZip, ZIPCODE), numlights=n())
+quakesZip <- over(y=zips, x=earthquakes)
+numQuakesZip<- summarise(group_by(quakesZip, ZIPCODE), numquakes=n())
+quakesZip2 <- left_join(zips.df,numQuakesZip, all.x=TRUE)
+```
+
+```{r}
+quakemap <- map1 + geom_polygon(aes(x=long, y=lat, group=id, fill=numquakes), size=.2, data=quakesZip2[is.na(quakesZip2$numquakes)==FALSE,])
+quakemap + colorscheme
 ```
