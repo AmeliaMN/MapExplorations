@@ -39,7 +39,7 @@ I was able to get two Stamen maps of LA loaded, one interactive (not shown) and 
 ```
 
 ```{r}
-map1 <- get_map(c(-118.2500, 34.0500), zoom = 10, maptype = "toner", source = "stamen")
+map1 <- get_map(c(-118.2500, 34.0500), zoom = 8, maptype = "toner", source = "stamen")
 map1 <- ggmap(map1)
 map1
 ```
@@ -235,4 +235,36 @@ quakesZip2 <- left_join(zips.df,numQuakesZip, all.x=TRUE)
 ```{r}
 quakemap <- map1 + geom_polygon(aes(x=long, y=lat, group=id, fill=numquakes), size=.2, data=quakesZip2[is.na(quakesZip2$numquakes)==FALSE,])
 quakemap + colorscheme
+```
+
+
+## More generic polygons
+
+Now that I have some semi-decent data, I want to move to more generic polygons. This is going to be funny, because the shapes are going to be simpler but they're going to be much harder to create. 
+
+```{r}
+latitudes <- range(quakesZip2$lat)
+midlat <- latitudes[1] + (latitudes[2]-latitudes[1])/2
+longitudes <- range(quakesZip2$long)
+midlon <- longitudes[1]+ (longitudes[2]-longitudes[1])/2
+
+poly1 <- data.frame(lon=c(longitudes[1], longitudes[1], midlon, midlon, longitudes[1]), lat=c(latitudes[1], midlat, midlat, latitudes[1], latitudes[1]))
+p <- Polygon(poly1)
+ps = Polygons(list(p), 1)
+
+poly2 <- data.frame(lon=c(midlon, longitudes[2], longitudes[2], midlon, midlon), lat=c(latitudes[1], latitudes[1], midlat, midlat, latitudes[1]))
+p <- Polygon(poly2)
+ps2 <- Polygons(list(p), 2)
+
+poly3 <- data.frame(lon=c(midlon, longitudes[2], longitudes[2], midlon, midlon), lat=c(midlat, midlat, latitudes[2], latitudes[2], midlat))
+p <- Polygon(poly3)
+ps3 <- Polygons(list(p), 3)
+
+poly4 <- data.frame(lon=c(longitudes[1], midlon, midlon, longitudes[1], longitudes[1]), lat=c(midlat, midlat, latitudes[2], latitudes[2], midlat))
+p <- Polygon(poly4)
+ps4 <- Polygons(list(p), 4)
+
+sps =SpatialPolygons(list(ps, ps2, ps3, ps4))
+proj4string(sps) <- CRS("+proj=longlat +datum=WGS84")
+map1 + geom_polygon(aes(x=long, y=lat, group=id), size=.2, color='green', data=sps, alpha=0)
 ```
