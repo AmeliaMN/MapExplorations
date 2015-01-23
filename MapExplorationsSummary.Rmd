@@ -268,3 +268,5 @@ sps =SpatialPolygons(list(ps, ps2, ps3, ps4))
 proj4string(sps) <- CRS("+proj=longlat +datum=WGS84")
 map1 + geom_polygon(aes(x=long, y=lat, group=id), size=.2, color='green', data=sps, alpha=0)
 ```
+
+Okay, so those polygons are too big. Need to rethink this. 
