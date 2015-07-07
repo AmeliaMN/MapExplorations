@@ -243,30 +243,55 @@ quakemap + colorscheme
 Now that I have some semi-decent data, I want to move to more generic polygons. This is going to be funny, because the shapes are going to be simpler but they're going to be much harder to create. 
 
 ```{r}
-latitudes <- range(quakesZip2$lat)
-midlat <- latitudes[1] + (latitudes[2]-latitudes[1])/2
-longitudes <- range(quakesZip2$long)
-midlon <- longitudes[1]+ (longitudes[2]-longitudes[1])/2
+makePolys <- function(lat, lon, howmany){
+  # Find the perimeter of the data
+  latrange <- range(lat)
+  lonrange <- range(lon)
+  
+  #start the boxes
+  latitudes <- latrange[1]
+  longitudes <- lonrange[1]
+  
+  #make breakpoints
+  for (i in 1:(howmany)){
+    latitudes[i+1] <- latitudes[i] + (latrange[2]-latrange[1])/howmany
+    longitudes[i+1] <- longitudes[i] + (lonrange[2]-lonrange[1])/howmany
+  }
 
-poly1 <- data.frame(lon=c(longitudes[1], longitudes[1], midlon, midlon, longitudes[1]), lat=c(latitudes[1], midlat, midlat, latitudes[1], latitudes[1]))
-p <- Polygon(poly1)
-ps = Polygons(list(p), 1)
+  #build the boxes
+  polys <- list()
+  a <- 1
+  for (i in 1:howmany){
+    for (j in 1:howmany){
+      polytmp <- data.frame(lon=c(longitudes[i], longitudes[i], longitudes[i+1], longitudes[i+1], longitudes[i]), lat=c(latitudes[j], latitudes[j+1], latitudes[j+1], latitudes[j], latitudes[j]))
+      polytmp <- Polygon(polytmp)
+      polys[a] <- Polygons(list(polytmp), letters[a])
+      a <- a+ 1 
+    }
+  }
+  return(polys)  
+}
 
-poly2 <- data.frame(lon=c(midlon, longitudes[2], longitudes[2], midlon, midlon), lat=c(latitudes[1], latitudes[1], midlat, midlat, latitudes[1]))
-p <- Polygon(poly2)
-ps2 <- Polygons(list(p), 2)
+```{r}
+polygons <- makePolys(quakesZip2$lat, quakesZip2$long, 5)
+polygons = SpatialPolygons(polygons)
+proj4string(polygons) <- CRS("+proj=longlat +datum=WGS84")
 
-poly3 <- data.frame(lon=c(midlon, longitudes[2], longitudes[2], midlon, midlon), lat=c(midlat, midlat, latitudes[2], latitudes[2], midlat))
-p <- Polygon(poly3)
-ps3 <- Polygons(list(p), 3)
+map1 + geom_polygon(aes(x=long, y=lat, group=id), size=.2, color='green', data=polygons, alpha=0)
 
-poly4 <- data.frame(lon=c(longitudes[1], midlon, midlon, longitudes[1], longitudes[1]), lat=c(midlat, midlat, latitudes[2], latitudes[2], midlat))
-p <- Polygon(poly4)
-ps4 <- Polygons(list(p), 4)
+polydata <- data.frame(id=letters[1:(howmany*howmany)], index=c(1:howmany*howmany))
+rownames(polydata) <- letters[1:(howmany*howmany)]
 
-sps =SpatialPolygons(list(ps, ps2, ps3, ps4))
-proj4string(sps) <- CRS("+proj=longlat +datum=WGS84")
-map1 + geom_polygon(aes(x=long, y=lat, group=id), size=.2, color='green', data=sps, alpha=0)
+polygons2 <- SpatialPolygonsDataFrame(polygons, polydata)
+
+polygons2@data$id = rownames(polygons2@data)
+polygons2.points = fortify(polygons2, region="id")
+polygons2.df = inner_join(polygons2.points, polygons2@data, by="id")
+
+quakesBox <- over(y=polygons2, x=earthquakes)
+numQuakesBox <- summarise(group_by(quakesBox, id), numquakes=n())
+quakesBox2 <- left_join(polygons2.df,numQuakesBox, all.x=TRUE)
+
+quakemap <- map1 + geom_polygon(aes(x=long, y=lat, group=id, fill=numquakes), size=.2, data=quakesBox2[is.na(quakesBox2$numquakes)==FALSE,])
+quakemap + colorscheme
 ```
-
-Okay, so those polygons are too big. Need to rethink this. 
