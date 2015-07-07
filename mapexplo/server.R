@@ -1,7 +1,11 @@
-library(dplyr)
-library(sp)
 library(ggplot2)
+library(foreign)
+library(RgoogleMaps)
+library(rgeos)
 library(ggmap)
+library(rgdal)
+require(maptools)
+require(dplyr)
 source("makePolys.R")
 
 earthquakes <- read.table("data/2014earthquakes.catalog", sep="")
