@@ -1,0 +1,56 @@
+
+<!DOCTYPE html>
+<html land="en">
+<head>
+	<meta charset="utf-8">
+	<title>D3 Test</title>
+	<style>
+	.states-boundary {
+  		fill: none;
+  		stroke: #777;
+  		stroke-dasharray: 2,2;
+  		stroke-linejoin: round;
+	}
+	</style>
+	<body>
+
+
+<script type="text/javascript" src="d3/d3.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script>
+var width = 960,
+    height = 1160;
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+d3.json("finalallzips.json", function(collection) {
+	var zips = topojson.feature(collection, collection.objects.alllazips)
+
+	var bounds = d3.geo.bounds(zips);
+	var centerX = d3.sum(bounds, function(d) {return d[0];}) /2,
+		centerY = d3.sum(bounds, function(d) {return d[1];}) /2;
+
+	var projection = d3.geo.mercator()
+		.scale(3000)
+		//.translate([0,0]);
+		.center([-122, 42]);
+
+	var path = d3.geo.path()
+		.projection(projection);
+//debugger;
+	svg.append("path")
+		.datum(zips)
+		//.enter().append("path")
+		.attr("d", path)
+		.style("stroke", "grey")
+		.style("fill", "none");
+	//svg.append("path")
+    //	.datum(topojson.mesh(collection, collection.objects.states)
+    //	.attr("d", path)
+    //	.attr("class", "states-boundary");
+});
+</script>
+</body>
+</html>

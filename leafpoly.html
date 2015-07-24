@@ -1,0 +1,284 @@
+<!-- works without stuttering -->
+
+<!doctype html>
+<meta charset="utf-8">
+<html>
+  <head>
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+
+    <style type="text/css">
+      #map {
+        width: 960px;
+        height: 500px;
+      }
+
+      svg {
+        position: relative;
+      }
+      path {
+        fill: none;
+        stroke-width: 1px;
+        stroke: #666;
+      }
+      circle {
+        fill: steelblue;
+      }
+      circle.selected {
+        fill: #ff0000;
+      }
+
+      .q0-9{fill:rgb(247,251,255)}
+      .q1-9{fill:rgb(222,235,247)}
+      .q2-9{fill:rgb(198,219,239)}
+      .q3-9{fill:rgb(158,202,225)}
+      .q4-9{fill:rgb(107,174,214)}
+      .q5-9{fill:rgb(66,146,198)}
+      .q6-9{fill:rgb(33,113,181)}
+      .q7-9{fill:rgb(8,81,156)}
+      .q8-9{fill:rgb(8,48,107)}
+    </style>
+  </head>
+
+  <body>
+
+<!--    <div id="canvas"></div> -->
+    <p id="map"></p>
+
+<script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+<script type="text/javascript" src="d3/d3.js"></script>
+<script>
+      var trans = [0,0];
+
+      drag = d3.behavior.drag()
+                .origin(Object)
+                .on("drag", function(d){
+                  trans = [d3.mouse(this)[0], d3.mouse(this)[1]];
+                  console.log(trans);
+                  draw();
+                  reset();
+                });
+
+      // zoom = d3.behavior.zoom()
+      //           .on("zoom", function(d){
+      //             trans = [d3.event.translate[0], d3.event.translate[1]];
+      //             console.log(trans);
+      //             draw();
+      //           });
+
+      // svg = d3.select("#canvas").append("svg").attr({
+      //         width: width,
+      //         height: height
+      //       });
+
+       // g = svg.append("g")
+       //      .call(drag);
+       //      // .call(zoom);
+
+  var map = new L.map('map', {center: [34.0500, -118.2500], zoom: 13, minzoom: 0, maxzoom: 20, zoomControl: false})
+    .addLayer(new L.TileLayer('http://{s}.tiles.mapbox.com/v3/ameliamn.k30bdcii/{z}/{x}/{y}.png'));
+
+map.dragging.disable();
+map.touchZoom.disable();
+map.doubleClickZoom.disable();
+map.scrollWheelZoom.disable();
+
+
+  var svg = d3.select(map.getPanes().overlayPane).append("svg"),
+    g = svg.append("g").attr("class", "leaflet-zoom-hide").call(drag);
+
+ var grid = {width: 160, height: 120};
+    grid.cols = 960 / grid.width, 
+    grid.rows = 500 / grid.height;
+
+  var data = {};
+  data['type'] ='FeatureCollection';
+  data['features'] = [];
+    for (var r = 0; r < grid.rows; r++) {
+        for (var c = 0; c < grid.cols; c++) {
+          var coords = {"type": "Feature", "geometry":{"type": "Polygon", "coordinates": [
+          ([
+          [c * grid.width, r * grid.width],
+          [c * grid.width, (r+1) * grid.width],
+          [(c+1) * grid.width, (r+1) * grid.width],
+          [(c+1)* grid.width, r * grid.width],
+          [c* grid.width, r * grid.width]
+          ].map(function(p) { var ll=map.containerPointToLatLng(p); return [ll.lng, ll.lat]})
+          )]
+        }}
+          // [map.containerPointToLatLng([c * grid.width, r * grid.width])],
+          // [map.containerPointToLatLng([c * grid.width, (r+1) * grid.width])],
+          // [map.containerPointToLatLng([(c+1) * grid.width, (r+1) * grid.width])],
+          // [map.containerPointToLatLng([(c+1)* grid.width, r * grid.width])],
+          // [map.containerPointToLatLng([c* grid.width, r * grid.width])]]]}}
+        data.features.push(coords);
+        }
+    };
+    // var data = {"type": "FeatureCollection", "features": [{"type": "Feature", "geometry":{"type": "Polygon", "coordinates": [[133, 207], [291, 207], [291, 481], [133, 481], [133, 207]]}}]};
+    console.log(data);
+
+
+
+    d3.json("restaurants2.json", function(collection){
+      points = collection;
+      collection.features.forEach(function(d){
+        d.LatLng = new L.LatLng(d.geometry.coordinates[1],
+          d.geometry.coordinates[0])
+      })
+  // console.log(collection);
+  // console.log(data);
+
+    var feature = g.selectAll("circle")
+      .data(collection.features)
+      .enter().append("circle")
+      .attr("class", "circle intersects")
+      .attr("r", 20);
+
+
+    var bounds = path.bounds(collection),
+        topLeft = bounds[0],
+        bottomRight = bounds[1];
+
+    map.on("viewreset", reset);
+    reset();
+
+
+   function reset() {
+      feature.attr("transform",
+        function(d) {
+          var ret = "translate("+
+        map.latLngToLayerPoint(d.LatLng).x +","+
+        map.latLngToLayerPoint(d.LatLng).y +")";
+        // console.log(ret); 
+        return ret;
+          });
+
+      // console.log(path.bounds(data));
+       
+      
+
+      // console.log(bounds);
+
+      svg .attr("width", bottomRight[0] - topLeft[0] + 140)
+        .attr("height", bottomRight[1] - topLeft[1] + 140)
+        .style("left", topLeft[0] + "px")
+        .style("top", topLeft[1] + "px");
+
+      g.  attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
+      // grids.attr("points", function(d) { 
+      //           var ugh10 = d.points.map(function(d) { return [d.x,d.y].join(","); }).join(" ");
+      //         return ugh10;})
+     grids.attr("d", path);
+   }
+
+    });
+
+    function projectPoint(x, y) {
+      var point = map.latLngToLayerPoint(new L.LatLng(y, x));
+      // console.log(point);
+      this.stream.point(point.x, point.y);
+  };
+
+    var transform2 = d3.geo.transform({point: projectPoint}),
+        path = d3.geo.path().projection(transform2);
+
+    
+
+      // grids = g.selectAll("polygon")
+      //     .data(data.features)
+      //     .enter().append("polygon")
+      //     .style("stroke", "grey")
+      //     .attr("points", function(d){
+      //       return d.geometry.coordinates.map(function(d){
+      //         return d.join(" ")})});
+
+    // console.log(data);
+    var grids = g.selectAll("path")
+          .data(data.features)
+          .enter().append("path")
+          .style("opacity", 0.5)
+          // .style("fill", "none")
+          .style("stroke", "grey");
+          // .attr("points", function(d){
+          //   return d.geometry.coordinates.map(function(d){
+          //     return d.join(" ")})});
+          //.attr("d", path);
+
+
+ draw = function() {  
+
+    grids.attr("transform", function(d) { 
+          console.log(d);
+          return "translate("+ trans[0] + "," + trans[1] +")"})
+        .attr("class", function(d){
+            return calculator(points.features, d, trans)});
+
+  
+};
+
+
+           // from https://github.com/substack/point-in-polygon
+      var pointInPolygon = function (point, vs, offset) {
+        // ray-casting algorithm based on
+        // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+        var xi, xj, i, intersect,
+            x = point[0],
+            y = point[1],
+            inside = false;
+        for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+          xi = vs[i][0]+offset[0],
+          yi = vs[i][1]+offset[1],
+          xj = vs[j][0]+offset[0],
+          yj = vs[j][1]+offset[1],
+          intersect = ((yi > y) != (yj > y))
+              && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+          if (intersect) inside = !inside;
+        }
+        return inside;
+      };
+
+      var calculator = function(circles, polygon, initial){
+        // debugger;
+        var eachpoly = 0;
+          // console.log(polygon.geometry.coordinates[0]);
+          for (j=0; j<circles.length; j++){
+            if (pointInPolygon([circles[j].geometry.coordinates[0], circles[j].geometry.coordinates[1]], polygon.geometry.coordinates[0], initial)){
+              eachpoly += 1;
+            }
+          }
+          col = "q" + Math.min(8, ~~(eachpoly * 9 / 5)) + "-9";
+          return col;
+      };
+
+
+
+
+
+          
+
+ // dot = g.selectAll("circle")
+ //      .data(trialpoints)
+ //    .enter().append("circle")
+ //      .attr({
+ //        cx: function(d, i) {
+ //          return d.x;
+ //        },
+ //        cy: function(d, i) {
+ //          return d.y;
+ //        },
+ //        r: 3
+ //      })
+ //      .classed("selected", false);
+
+
+
+
+
+
+
+
+
+
+    </script>
+
+  </body>
+</html>

@@ -1,0 +1,65 @@
+
+<!DOCTYPE html>
+<html land="en">
+<head>
+	<meta charset="utf-8">
+	<title>D3 Test</title>
+	<style>
+	.subunit-boundary {
+  		fill: none;
+  		stroke: #777;
+  		stroke-dasharray: 2,2;
+  		stroke-linejoin: round;
+	}
+	</style>
+	<body>
+
+
+<script type="text/javascript" src="../core/lib/d3/d3.v3.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script>
+var width = 960,
+    height = 1160;
+    
+var zoom = d3.behavior.zoom()
+    .scaleExtent([1, 10])
+    .on("zoom", zoomed);
+
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height).call(zoom);
+
+var container = svg.append("g");
+
+d3.json("la-nbh-topo.json", function(collection) {
+	var zips = topojson.feature(collection, collection.objects["la-nbh-geo"])
+	
+	var center = d3.geo.centroid(zips);
+    var scale  = 30000;
+    var offset = [width/2, height/2];
+    var projection = d3.geo.mercator()
+        .scale(scale)
+        .center(center)
+    	.translate(offset);
+	var path = d3.geo.path().projection(projection);
+
+    svg.append("rect").attr('width', width).attr('height', height)
+        .style('stroke', 'black').style('fill', 'none');
+
+    container.selectAll("path").data(zips.features).enter().append("path")
+    	.attr("d", path)
+    	.style("stroke", "blue").style("stroke-width","0.5px").style("fill","none");
+        
+    var place = [ -118.4441, 34.0722];
+    container.append("circle").datum(place).attr("transform", function(d) { return "translate(" + projection(d) + ")"; }).attr("r", 3).attr("fill","red");
+    
+});
+
+function zoomed() {
+  container.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+}
+
+</script>
+</body>
+</html>

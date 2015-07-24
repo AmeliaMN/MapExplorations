@@ -1,0 +1,62 @@
+
+<!DOCTYPE html>
+<html land="en">
+<head>
+	<meta charset="utf-8">
+	<title>D3 Test</title>
+	<style>
+	.subunit-boundary {
+  		fill: none;
+  		stroke: #777;
+  		stroke-dasharray: 2,2;
+  		stroke-linejoin: round;
+	}
+	</style>
+	<body>
+
+
+<script type="text/javascript" src="d3/d3.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script>
+var width = 960,
+    height = 1160;
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+d3.json("topoExport.json", function(collection) {
+	var zips = topojson.feature(collection, collection.objects.lanbh)
+	
+	var center = d3.geo.centroid(zips)
+
+    var scale  = 150;
+    var offset = [width/2, height/2];
+    var projection = d3.geo.mercator().scale(scale).center(center)
+    	.translate(offset);
+
+	var path = d3.geo.path().projection(projection);
+
+	var bounds  = path.bounds(collection);
+
+    var hscale  = scale*width / (bounds[1][0] - bounds[0][0]);
+    var vscale 	= scale*height /(bounds[1][1] - bounds[0][1]);
+    var scale = (hscale < vscale) ? hscale : vscale;
+    var offset  = [width - (bounds[0][0] + bounds[1][0])/2,
+                        height - (bounds[0][1] + bounds[1][1])/2];
+
+
+    projection = d3.geo.mercator().center(center)
+    	.scale(scale).translate(offset);
+    path = path.projection(projection);
+
+    svg.append("rect").attr('width', width).attr('height', height)
+        .style('stroke', 'black').style('fill', 'none');
+
+    svg.selectAll("path").data(zips).enter().append("path")
+    	.attr("d", path)
+    	.style("stroke", "grey");
+});
+</script>
+</body>
+</html>

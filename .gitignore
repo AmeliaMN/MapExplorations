@@ -6,6 +6,9 @@
 .Rproj.user/
 
 #Specific data
+/ne_10m_populated_places
+/ne_10m_admin_0_map_subunits
+/states_21basic
 /aff_download
 /CAMS_ZIPCODE_PARCEL_SPECIFIC
 /LANeighborhoodCouncils

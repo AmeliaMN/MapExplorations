@@ -1,0 +1,155 @@
+
+<!-- Working fixed grid and points and map -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+<style>
+#map {
+	width: 960px;
+	height: 500px;
+}
+
+.circle {
+fill: red;
+fill-opacity: .6;
+}
+
+.circle.intersects {
+	fill: green;
+}
+
+svg {
+position: relative;
+}
+
+path {
+  fill-opacity: .2;
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+</style>
+
+<header>
+  <title>Map explorations</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</header>
+<body>
+
+<p id="map"></p>
+<!-- <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> -->
+<script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+<script type="text/javascript" src="d3/d3.js"></script>
+<script>
+	var map = new L.map('map', {center: [34.0500, -118.2500], zoom: 13, minzoom: 0, maxzoom: 20})
+    .addLayer(new L.TileLayer('http://{s}.tiles.mapbox.com/v3/ameliamn.k30bdcii/{z}/{x}/{y}.png'));
+
+  var svg = d3.select(map.getPanes().overlayPane).append("svg"),
+    g = svg.append("g").attr("class", "leaflet-zoom-hide");
+
+ var grid = {width: 160, height: 120};
+    grid.cols = 960 / grid.width, 
+    grid.rows = 500 / grid.height;
+
+  var data = {};
+  data['type'] ='FeatureCollection';
+  data['features'] = [];
+    for (var r = 0; r < grid.rows; r++) {
+        for (var c = 0; c < grid.cols; c++) {
+          var coords = {"type": "Feature", "geometry":{"type": "Polygon", "coordinates": [
+          ([
+          [c * grid.width, r * grid.width],
+          [c * grid.width, (r+1) * grid.width],
+          [(c+1) * grid.width, (r+1) * grid.width],
+          [(c+1)* grid.width, r * grid.width],
+          [c* grid.width, r * grid.width]
+          ].map(function(p) { var ll=map.containerPointToLatLng(p); return [ll.lng, ll.lat]})
+          )]
+        }}
+          // [map.containerPointToLatLng([c * grid.width, r * grid.width])],
+          // [map.containerPointToLatLng([c * grid.width, (r+1) * grid.width])],
+          // [map.containerPointToLatLng([(c+1) * grid.width, (r+1) * grid.width])],
+          // [map.containerPointToLatLng([(c+1)* grid.width, r * grid.width])],
+          // [map.containerPointToLatLng([c* grid.width, r * grid.width])]]]}}
+        data.features.push(coords);
+        }
+    };
+    // var data = {"type": "FeatureCollection", "features": [{"type": "Feature", "geometry":{"type": "Polygon", "coordinates": [[133, 207], [291, 207], [291, 481], [133, 481], [133, 207]]}}]};
+    console.log(data);
+
+
+d3.json("restaurants2.json", function(collection){
+	collection.features.forEach(function(d){
+		d.LatLng = new L.LatLng(d.geometry.coordinates[1],
+			d.geometry.coordinates[0])
+	})
+  // console.log(collection);
+  // console.log(data);
+
+		var feature = g.selectAll("circle")
+			.data(collection.features)
+			.enter().append("circle")
+			.attr("class", "circle intersects")
+			.attr("r", 20);
+
+    var transform2 = d3.geo.transform({point: projectPoint}),
+        path = d3.geo.path().projection(transform2);
+
+    
+
+    // console.log(data);
+    var grids = g.selectAll("path")
+    			.data(data.features)
+    			.enter().append("path")
+          .style("fill", "none")
+          .style("stroke", "grey");
+          //.attr("d", path);
+
+    map.on("viewreset", reset);
+    reset();
+
+    function reset() {
+      feature.attr("transform",
+        function(d) {
+          var ret = "translate("+
+        map.latLngToLayerPoint(d.LatLng).x +","+
+        map.latLngToLayerPoint(d.LatLng).y +")";
+        // console.log(ret); 
+        return ret;
+          });
+
+      // console.log(path.bounds(data));
+       
+      var bounds = path.bounds(collection),
+        topLeft = bounds[0],
+        bottomRight = bounds[1];
+
+      // console.log(bounds);
+
+      svg .attr("width", bottomRight[0] - topLeft[0] + 140)
+        .attr("height", bottomRight[1] - topLeft[1] + 140)
+        .style("left", topLeft[0] + "px")
+        .style("top", topLeft[1] + "px");
+
+      g.  attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
+      // grids.attr("points", function(d) { 
+      //           var ugh10 = d.points.map(function(d) { return [d.x,d.y].join(","); }).join(" ");
+      //         return ugh10;})
+     grids.attr("d", path);
+   }
+  function projectPoint(x, y) {
+    var point = map.latLngToLayerPoint(new L.LatLng(y, x));
+    console.log(point);
+    this.stream.point(point.x, point.y);
+  }
+});
+
+
+	</script>
+
+
+ </body>
+</html>
