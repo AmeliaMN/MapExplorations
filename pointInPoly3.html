@@ -32,10 +32,38 @@
       .q6-9{fill:rgb(33,113,181)}
       .q7-9{fill:rgb(8,81,156)}
       .q8-9{fill:rgb(8,48,107)}
+
+
+  /*      .container {
+      background-color:gray;
+      width: 600px;
+      height: 400px;
+      -ms-touch-action: none;
+      ms-touch-action: none;
+    }
+    .plateContainer{
+      position: absolute;
+      left: 0;
+      top: 0;
+      -ms-touch-action: none;
+      ms-touch-action: none;
+    }
+    .plate{
+      position: absolute;
+      left: -200px;
+      top: -200px;
+    }*/
     </style>
   </head>
 
   <body>
+
+<!-- <div id="exampleContainer2" class="container">
+    <div id="plateContainer" class="plateContainer">
+      <canvas id="plateCanvas" width="400" height="400" class="plate"></canvas>
+    </div>
+  </div> -->
+
 
     <div id="canvas"></div>
 
@@ -51,6 +79,7 @@
 
       var trans = [0,0];
       var zoomlevel = 1;
+      var rotation = 0;
       var initialmouse, initialtrans;
 
       drag = d3.behavior.drag()
@@ -73,10 +102,6 @@
 
                 // });
 
-
-
-     
-
       zoom = d3.behavior.zoom()
                 .on("zoom", function(d){
                   zoomlevel = d3.event.scale;
@@ -89,13 +114,32 @@
               height: height
             });
 
-       g = svg.append("g")
-            .call(drag)
-            .call(zoom);
-      
 
 
-      var grid = {width: 160, height: 120};
+      var myElement = document.getElementById('canvas');
+
+      var mc = new Hammer.Manager(myElement);
+
+      var pinch = new Hammer.Pinch();
+      var rotate = new Hammer.Rotate();
+
+      pinch.recognizeWith(rotate);
+
+      mc.add([pinch, rotate]);
+
+      // hammertime.get('rotate').set({enable: true });
+
+      mc.on('pinch rotate', function(ev){
+        rotation = ev.rotation;
+        zoomlevel = ev.scale;
+        draw();
+        console.log(rotation + " " + zoomlevel);
+      }); 
+
+
+
+
+ var grid = {width: 160, height: 120};
       grid.cols = 960 / grid.width, 
       grid.rows = 500 / grid.height;
 
@@ -115,7 +159,27 @@
           data.features.push(coords);
           }
       };
+
+           g = svg.append("g")
+            .call(drag)
+            .call(zoom);
+
+      grids = g.selectAll("polygon")
+          .data(data.features)
+          .enter().append("polygon")
+          .style("stroke", "grey")
+          .attr("points", function(d){
+            return d.geometry.coordinates.map(function(d){
+              return d.join(" ")})});
+
+       
+      
+
+
      
+     
+
+
 
       // from https://github.com/substack/point-in-polygon
       var pointInPolygon = function (point, vs, offset, zoom) {
@@ -147,7 +211,9 @@
         for (i=0; i < numPoints; i++) {
           data.push({x: randPoint(margin, width-margin), y: randPoint(margin, height-margin)});
         }
+        console.log(data);
         return data;
+
       };
 
 
@@ -165,13 +231,7 @@
 
   var trialpoints = points(1000);
 
-  grids = g.selectAll("polygon")
-          .data(data.features)
-          .enter().append("polygon")
-          .style("stroke", "grey")
-          .attr("points", function(d){
-            return d.geometry.coordinates.map(function(d){
-              return d.join(" ")})});
+  
           
 
  dot = g.selectAll("circle")
@@ -190,7 +250,7 @@
 
 function draw() {
         grids.attr("transform", function(d) { 
-          return "translate("+ trans[0] + "," + trans[1] +")scale(" + zoomlevel + ")"})
+          return "translate("+ trans[0] + "," + trans[1] +")scale(" + zoomlevel + ")rotate(" + rotation + ")"})
         .attr("class", function(d){
             return calculator(trialpoints, d, trans, zoomlevel)});
 }
