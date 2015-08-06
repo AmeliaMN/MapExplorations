@@ -1,0 +1,16 @@
+{
+    "contents" : "babydata <- data.frame(group=c(rep(\"caffeine\", times=937), rep(\"placebo\", times=932)), died=c(rep(\"yes\", times=377), rep(\"no\", times=560), rep(\"yes\", times=431), rep(\"no\", times=501)))\nlibrary(dplyr)\nprops <- group_by(babydata, group, died) %>% tally %>% mutate(pct=(n)/sum(n)) %>% filter(died == \"yes\")\nprops$pct[1] - props$pct[2]\n\nbrokendata <- data.frame(group=babydata$group, died=babydata$died[sample(1869, 1869)])\n\nbrokenprops <- group_by(brokendata, group, died) %>% tally %>% mutate(pct=(n)/sum(n)) %>% filter(died == \"yes\")\nbrokenprops$pct[1] - brokenprops$pct[2]\n\nhttp://www.lock5stat.com/statkey/randomization_2_cat/randomization_2_cat.html",
+    "created" : 1422596215671.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1519102781",
+    "id" : "1187C4C5",
+    "lastKnownWriteTime" : 1422319745,
+    "path" : "~/Dropbox/Job applications/Applications/Cal Poly SLO/HypothesisTesting.R",
+    "project_path" : null,
+    "properties" : {
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}

@@ -1,0 +1,22 @@
+{
+    "contents" : "",
+    "created" : 1436224610545.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "27704226",
+    "lastKnownWriteTime" : 9218868432932438017,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "caption" : "earthquakes",
+        "contentUrl" : "content?title=earthquakes&file=f31a0236a8ff4ecf8775a4f0448439a4.htm",
+        "displayedObservations" : "1000",
+        "displayedVariables" : 12,
+        "totalObservations" : "14415",
+        "variables" : "12"
+    },
+    "source_on_save" : false,
+    "type" : "r_dataframe"
+}

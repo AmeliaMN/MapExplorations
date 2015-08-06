@@ -1,0 +1,23 @@
+{
+    "contents" : "",
+    "created" : 1422319607609.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "DFB8E02F",
+    "lastKnownWriteTime" : 140344957901536,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "caption" : "brokendata",
+        "contentUrl" : "content?title=brokendata&file=0b0f18c0d6df4c388fcd978ce89f364b.htm",
+        "displayedObservations" : 1000,
+        "displayedVariables" : 2,
+        "totalObservations" : 1869,
+        "variables" : 2
+    },
+    "relative_order" : 0,
+    "source_on_save" : false,
+    "type" : "r_dataframe"
+}

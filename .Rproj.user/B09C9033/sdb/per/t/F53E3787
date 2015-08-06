@@ -1,0 +1,23 @@
+{
+    "contents" : "",
+    "created" : 1422316164188.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "F53E3787",
+    "lastKnownWriteTime" : 2960154350011351049,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "caption" : "babydata",
+        "contentUrl" : "content?title=babydata&file=7678b8096f82422983ba3b250a4ce0a5.htm",
+        "displayedObservations" : "1000",
+        "displayedVariables" : 2,
+        "totalObservations" : "1869",
+        "variables" : "2"
+    },
+    "relative_order" : 0,
+    "source_on_save" : false,
+    "type" : "r_dataframe"
+}

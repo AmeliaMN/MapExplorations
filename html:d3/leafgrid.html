@@ -1,0 +1,186 @@
+
+<!-- This is the working document that makes the grid that scales with the map -->
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  	<title>Map explorations</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+    </head>
+    <style>
+    #map {
+  		width: 960px;
+  		height: 500px;
+	}
+
+	.circle {
+		fill: red;
+		fill-opacity: .6;
+	}
+
+	.circle.intersects {
+  		fill: green;
+	}
+    </style>
+ <body>
+
+
+
+<div id="map"></div>
+
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+  	<script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+  	<script type="text/javascript" src="js/d3.js"></script>
+	<script>
+		var map = L.map('map').setView([34.0500, -118.2500], 13);
+
+		L.tileLayer('http://{s}.tiles.mapbox.com/v3/ameliamn.k30bdcii/{z}/{x}/{y}.png', {
+		    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+		    maxZoom: 18
+		}).addTo(map);
+
+
+		 map._initPathRoot()    
+
+
+		 var svg = d3.select("#map").select("svg"),
+		 g = svg.append("g");
+
+		d3.json("restaurants2.json", function(collection){
+			collection.features.forEach(function(d){
+				d.LatLng = new L.LatLng(d.geometry.coordinates[1],
+					d.geometry.coordinates[0])
+			})
+
+    		var feature = g.selectAll("circle")
+    			.data(collection.features)
+  				.enter().append("circle")
+  				.attr("class", "circle intersects")
+  				.attr("r", 20);
+
+  			
+
+		  	//grid stuff
+        // bounds = path.bounds(geoShape);
+        // var topLeft = bounds[0],
+        //   bottomRight = bounds[1];
+        // bottomRight[0] - topLeft[0]
+
+        var grid = {width: 160, height: 120};
+          grid.cols = 960 / grid.width, 
+          grid.rows = 500 / grid.height;
+
+		 //  var grid = {width: 160, height: 120};
+			// grid.cols = 960 / grid.width, 
+			// grid.rows = 500 / grid.height;
+
+			var data = [];
+    		for (var r = 0; r < grid.rows; r++) {
+        		for (var c = 0; c < grid.cols; c++) {
+              var coords = {"name": "string" + r + c, "points": [map.containerPointToLayerPoint([c * grid.width, r * grid.width]),
+                  map.containerPointToLayerPoint([c * grid.width, (r+1) * grid.width]),
+                  map.containerPointToLayerPoint([(c+1) * grid.width, (r+1) * grid.width]),
+                  map.containerPointToLayerPoint([(c+1)* grid.width, r * grid.width]),
+                  map.containerPointToLayerPoint([c* grid.width, r * grid.width])
+              ]}
+              data.push(coords);
+        		}
+    		};
+         // console.log(data);
+
+        // Now back to square one with this. The main deal is that whenever the viewport changes, we need to do another convertion of lat/lng to layerpoints. Right now I'm just setting layerpoints and never changing them.
+        // To begin, go above this and change the end of the command to ToLatLng, then go below and change d.x to d.lat etc
+        // Then, you'll have my non-working example! 
+    		// var grids = 
+        g.selectAll("polygon")
+        			.data(data)
+        			.enter()
+        			.append("polygon")
+              .attr("points", function(d) { 
+                var ugh10 = d.points.map(function(d) { return [d.x,d.y].join(","); }).join(" ");
+              return ugh10;})
+        			.style("fill", "none")
+        			.style("stroke", "grey");
+
+        map.on("viewreset", update);
+        update();
+
+        function update() {
+          feature.attr("transform",
+            function(d) {
+              var ret = "translate("+
+            map.latLngToLayerPoint(d.LatLng).x +","+
+            map.latLngToLayerPoint(d.LatLng).y +")";
+            // console.log(ret); 
+            return ret;
+              });
+          //  );
+          // console.log("update is working")
+
+          // grids.attr("transform",
+          //   function(d) {
+          //     var ugh = d.points.map(function (d){
+          //       var ugh11 = [map.latLngToLayerPoint(d).x, map.latLngToLayerPoint(d).y];
+          //       console.log(ugh11);
+          //         return ugh11;
+          //       })
+          //     console.log(ugh);
+          //     var ret = "translate("+ ugh + ")";
+          //   // map.latLngToLayerPoint(d.points.lat).x +","+
+          //   // map.latLngToLayerPoint(d.points.lng).y +")";
+          //   console.log(ret); return ret;
+          //     }
+          //   )
+          // console.log("update2 is working")
+        };
+
+        function projectPoint(x, y) {
+         var point = map.latLngToLayerPoint(new L.LatLng(y, x));
+         this.stream.point(point.x, point.y);
+        }
+
+
+
+
+  			// map.on("viewreset", update2);
+  			// update2();
+
+
+  			// function update2() {
+  			// 	gridlines.attr("transform",
+  			// 		function(d) {
+     //        console.log(d.coordinates);
+  			// 			var ret = "translate("+
+  			// 		map.containerPointToLatLng(d.coordinates).x +","+
+  			// 		map.containerPointToLatLng(d.coordinates).y +")";
+  			// 		return ret;
+  			// 			}
+  			// 		)
+  			// }
+  
+        		//.attr("x", function(i) { return i[0] * grid.width; })
+        		//.attr("y", function(i) { return i[1] * grid.height; })
+        		//.attr("height", grid.height)
+        		//.attr("width", grid.width)
+
+
+   //      	function pointInPolygon(point, polygon) {
+			//   for (var n = polygon.length, i = 0, j = n - 1, x = point[0], y = point[1], inside = false; i < n; j = i++) {
+			//     var xi = polygon[i][0], yi = polygon[i][1],
+			//         xj = polygon[j][0], yj = polygon[j][1];
+			//     if ((yi > y ^ yj > y) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) inside = !inside;
+			//   }
+			//   return inside;
+			// }
+
+
+		})
+	</script>
+
+
+ </body>
+</html>

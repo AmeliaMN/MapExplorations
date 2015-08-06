@@ -1,0 +1,17 @@
+{
+    "contents" : "library(ggplot2)\nlibrary(foreign)\nlibrary(RgoogleMaps)\nlibrary(rgeos)\nlibrary(ggmap)\nlibrary(rgdal)\nrequire(maptools)\nrequire(dplyr)\nsource(\"makePolys.R\")\n\nearthquakes <- read.table(\"data/2014earthquakes.catalog\", sep=\"\")\nnames(earthquakes) <- c(\"Date\", \"Time\", \"ET\", \"MAG\", \"M\", \"lat\", \"long\", \"depth\", \"Q\", \"EVID\", \"NPH\", \"NGRM\")\nearthquakes <- filter(earthquakes, lat<36, lat>31, long<(-116), long>(-120))\nrownames(earthquakes) <- NULL\ncoordinates(earthquakes) <-~long+lat\nproj4string(earthquakes) <- CRS(\"+proj=longlat +datum=WGS84\")\n\nmap1 <- get_map(c(-118.2500, 34.0500), zoom = 8, maptype = \"toner\", source = \"stamen\")\nmap1 <- ggmap(map1)\nmap1\n\ncolorscheme <- scale_fill_continuous(high=\"#FF0000\", low=\"#4c0000\")\n\nshinyServer(\n  function(input, output){\n    output$map <- renderPlot({\n      howmany <- input$howmany\n      latitudes <- c(input$lat, range(earthquakes$lat)[2])\n      longitudes <- c(input$lon, range(earthquakes$long)[2])\n      polygons <- makePolys(latitudes, earthquakes$long, howmany)\n      polygons = SpatialPolygons(polygons)\n      proj4string(polygons) <- CRS(\"+proj=longlat +datum=WGS84\")\n          \n      polydata <- data.frame(id=letters[1:(howmany*howmany)], index=c(1:howmany*howmany))\n      rownames(polydata) <- letters[1:(howmany*howmany)]\n      \n      polygons2 <- SpatialPolygonsDataFrame(polygons, polydata)\n      \n      polygons2@data$id = rownames(polygons2@data)\n      polygons2.points = fortify(polygons2, region=\"id\")\n      polygons2.df = inner_join(polygons2.points, polygons2@data, by=\"id\")\n      \n      quakesBox <- over(y=polygons2, x=earthquakes)\n      numQuakesBox <- summarise(group_by(quakesBox, id), numquakes=n())\n      quakesBox2 <- left_join(polygons2.df,numQuakesBox, all.x=TRUE)\n    \n\n      quakemap <- map1 + geom_polygon(aes(x=long, y=lat, group=id, fill=numquakes), size=.2, data=quakesBox2[is.na(quakesBox2$numquakes)==FALSE,])\n      print(quakemap + colorscheme)  \n    })\n    \n  }\n  )\n\n\n",
+    "created" : 1436223487195.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1250458057",
+    "id" : "C5DACC9",
+    "lastKnownWriteTime" : 1436229562,
+    "path" : "~/Dropbox/Projects/MapExplorations/mapexplo/server.R",
+    "project_path" : null,
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}
