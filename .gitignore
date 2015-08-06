@@ -4,7 +4,7 @@
 
 
 #Specific data
-/data/shapes
+/data/shapes/*
 !/data/shapes/ConversionStuff
 !/data/shapes/lanbh*
 !/data/shapes/states*

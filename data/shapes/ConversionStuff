@@ -1,0 +1,59 @@
+topojson -s \
+  -o finalzips.json \
+  lazips.json
+
+  ogr2ogr \
+  -f GeoJSON \
+  -where "ZIPCODE IN ('90025', '90025')" \
+  lazips.json \
+  CAMS_ZIPCODE_PARCEL_SPECIFIC/CAMS_ZIPCODE_PARCEL_SPECIFIC.shp
+
+
+  ogr2ogr \
+  -f GeoJSON \
+  -where "NAME IN ('WATTS NC')" \
+  -clipsrclayer NeighborhoodCouncils \
+  lanbh.json \
+  LANeighborhoodCouncils/NeighborhoodCouncils.shp
+
+
+  topojson \
+  -o finalnbh.json \
+  lanbh.json
+
+
+
+
+  ogr2ogr \
+  -f GeoJSON \
+  alllazips.json \
+  CAMS_ZIPCODE_PARCEL_SPECIFIC/CAMS_ZIPCODE_PARCEL_SPECIFIC.shp
+
+
+  topojson \
+  -o finalallzips.json \
+  alllazips.json
+
+
+  ogr2ogr \
+  -f GeoJSON \
+  states.json \
+  states_21basic/states.shp
+
+  topojson \
+  -o states2.json \
+  states.json  
+
+
+
+
+  ogr2ogr \
+  -f GeoJSON \
+  -clipsrclayer NeighborhoodCouncils \
+  lanbhs.json \
+  LANeighborhoodCouncils/NeighborhoodCouncils.shp
+
+
+  topojson \
+  -o lanbhs2.json \
+  lanbhs.json
