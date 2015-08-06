@@ -6,9 +6,6 @@
 #Specific data
 /data/shapes/*
 !/data/shapes/ConversionStuff
-!/data/shapes/lanbh*
-!/data/shapes/states*
-/data/aff_download/*
-/R/MapExplorationsSummary_files
-/R/MapExplorationsSummary_cache
+/R/InitialExplorations_files
+/R/InitialExplorations_cache
 /data/zipfiles/*
