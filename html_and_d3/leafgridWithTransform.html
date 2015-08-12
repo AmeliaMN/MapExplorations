@@ -12,9 +12,38 @@
   		height: 500px;
 	}
 
-	.landmark {
-		fill: red;
-	}
+    .info {
+    padding: 6px 8px;
+    font: 14px/16px Arial, Helvetica, sans-serif;
+    background: white;
+    background: rgba(255,255,255,1);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 5px;
+    }
+    .info h4 {
+    margin: 0 0 5px;
+    color: #777;
+    }
+    .legend {
+    line-height: 18px;
+    color: #555;
+    }
+    .legend i {
+    width: 36px;
+    height: 18px;
+    float: left;
+    margin-right: 8px;
+    opacity: 1;
+    }
+    .count {
+    padding: 6px 8px;
+    font: 14px/16px monospace;
+    background: white;
+    background: rgba(255,255,255,0.9);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 5px;
+    }
+
     </style>
  <body>
 
@@ -26,58 +55,77 @@
   	<script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
     <script src="http://d3js.org/d3.v3.min.js"></script>
     <script src="http://leaflet-extras.github.io/RTree/dist/rtree.js"></script>
+    <script src="http://rawgit.com/simple-statistics/simple-statistics/master/dist/simple_statistics.js"></script>
     
 	<script>
         function pt(x, y) { return { x: x, y: y } }
         function latlng(lat, lng) { return { lat: lat, lng: lng } }
         function pointWithinRect(x, y, rect) { return x>=rect[0] && x<=rect[2] && y>=rect[1] && y<=rect[3] }
-        function cellLLVertices(cell) { return baseCell.vertexLLOffsets.map(function(ll) { return latlng(ll.lat+cell.centroid.lat, ll.lng+cell.centroid.lng) }) }
-        function cellContainerVertices(cell) { return baseCell.vertexContainerOffsets.map(function(p) { return pt(p.x+cell.centroid.containerX, p.y+cell.centroid.containerY) }) }
+        function cellLLVertices(cell) {
+            if (cell.vertices) { return cell.vertices.map(function(p) { return latlng(p.lat, p.lng) }) }
+            return baseCell.vertexLLOffsets.map(function(ll) { return latlng(ll.lat+cell.centroid.lat, ll.lng+cell.centroid.lng) }) }
+        function cellContainerVertices(cell) {
+            if (cell.vertices) { return cell.vertices.map(function(p) { return pt(p.containerX, p.containerY) }) }
+            return baseCell.vertexContainerOffsets.map(function(p) {
+                return pt(p.x+cell.centroid.containerX, p.y+cell.centroid.containerY) }) }
         function cellRoughLLBox(cell) {
+            if (cell.llBox) return cell.llBox;
             var centroid = cell.centroid;
             var baseBox = baseCell.llBoxOffsets;
             return [centroid.lng+baseBox[0], centroid.lat+baseBox[1], centroid.lng+baseBox[2], centroid.lat+baseBox[3] ];
         }
 
-        var mapOffset = latlng(34.0500, -118.2500), gridOffset = mapOffset, cacheT;
+        // var mapOffset = latlng(34.05, -118.25), initialZoom = 13, minZoom = 8;       // for LA data
+        var mapOffset = latlng(33.45, -117.1), initialZoom = 8, minZoom = 7;           // for SoCal data
+        var gridOffset = mapOffset, cacheT={};
         var gridShift = null;  // takes on a latlng value while user is dragging the grid
         var gridRotation = 0;
-        var mapRect;
-        
-        var initialZoom = 13, minZoom = 9;
-        var cells=[], baseCell, landmarks;
-        var landmarkRTree = new RTree();
+        var hideMap = false;
+
+        var mouseWheelAccumulation = 0;
+        var cells=[], baseCell, landmarks, landmarkRect;
+landmarkRTree = new RTree();  // @@@ global
 
         //var cellType = "square";
         var cellType = "hexagon";
 
-        function radiusForZoom(z) { return Math.max(2, Math.pow(2, z-12)) } // min 2; 4 for 13; 16 for 15
-        function opacityForZoom(z) { return Math.max(0.5, Math.min(1, 1-(z-11)*0.07)) } // 1 for zoom below 12; 0.5 at 18
+        // how to draw the landmarks
+        function radiusForZoom(z) { return Math.max(1, Math.pow(2, z-10)) } // min 1; 4 for 11; 16 for 15
+        function opacityForZoom(z) { return hideMap ? 0 : (Math.max(0.5, Math.min(1, 1-(z-11)*0.07))) } // 1 for zoom below 12; 0.5 at 18
+
+        // opacity scale for the grid
+        var gridOpacity;
 
 		var map = L.map('map').setView(mapOffset, initialZoom);
-window.debugMap = map;
-		L.tileLayer('http://{s}.tiles.mapbox.com/v3/ameliamn.k30bdcii/{z}/{x}/{y}.png', {
+debugMap = map;
+		mapTiles = L.tileLayer('http://{s}.tiles.mapbox.com/v3/ameliamn.k30bdcii/{z}/{x}/{y}.png', {
 		    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
-		    maxZoom: 18
+		    maxZoom: 15
 		}).addTo(map);
 
         map._initPathRoot();
         
         var mapBounds = map.getBounds(), lngRange = mapBounds.getEast()-mapBounds.getWest();
         if (lngRange<0) lngRange+=360;
-        // define the smallest grid size such that at the initial display we could fit 40 cells across the map
-        var minCellWidth = lngRange/40;
-        var cellZoomFactor = 1;
+        // define a minimum cell size, such that at two clicks in from the initial display we could fit 40 cells across the map
+        var minCellWidth = lngRange/(40*4);
+        // opposite to map zoom, increasing the cell zoom increases cell size.
+        // size factor is 2**(zoom level/2).  max zoom level is (arbitrarily) 8.
+        var cellZoomLevel = effectiveCellZoom = 4;
+        var usePreciseGrid;
+        var maxCellZoom = 8;
+        var cellDensities = [];             // cache of max. estimated densities for each cell zoom level
+        var cellDensityAllowance = 1.2;     // what multiple of estimated density we equate with opacity=1
         
         //map.on("viewreset", update);
 
         map.scrollWheelZoom.disable();
         map.boxZoom.disable();
         map.dragging.disable();
+        map.keyboard.disable();
 /*
         map.touchZoom.disable();
         map.doubleClickZoom.disable();
-        map.keyboard.disable();
 */
 
         var draggingMap = draggingGrid = rotatingGrid = false;
@@ -88,9 +136,10 @@ window.debugMap = map;
         // prevent map drag from starting if shift is down
         map.on("mousedown", function(e) {
             //console.log(e.originalEvent);
+            var mapLatLng = map.layerPointToLatLng([ e.originalEvent.layerX, e.originalEvent.layerY ]);
             if (e.originalEvent.shiftKey) {
                 draggingGrid = true;
-                initialDragOffset = map.layerPointToLatLng([ e.originalEvent.layerX, e.originalEvent.layerY ]);
+                initialDragOffset = mapLatLng;
                 cumulativeShift = latlng(0, 0);
                 e.originalEvent.stopPropagation();
             } else if (e.originalEvent.altKey) {
@@ -100,16 +149,17 @@ window.debugMap = map;
                 e.originalEvent.stopPropagation();
             } else {
                 draggingMap = true;
-                initialDragOffset = map.layerPointToLatLng([ e.originalEvent.layerX, e.originalEvent.layerY ]);
+                initialDragOffset = mapLatLng;
                 initialCentre = map.getCenter();
             }
             });
     
         map.on("mouseup", function() { draggingMap = draggingGrid = rotatingGrid = false; map.dragging.disable() });
         map.on("mousemove", function(e) {
+            var mapLatLng = map.layerPointToLatLng([ e.originalEvent.layerX, e.originalEvent.layerY ]);
             // if dragging with the shift key, move the grid
             if (draggingGrid) {
-                var desiredOffset = map.layerPointToLatLng([ e.originalEvent.layerX, e.originalEvent.layerY ]);
+                var desiredOffset = mapLatLng;
                 var desiredShift = latlng(desiredOffset.lat - initialDragOffset.lat, desiredOffset.lng - initialDragOffset.lng);
                 gridShift = latlng(desiredShift.lat-cumulativeShift.lat, desiredShift.lng-cumulativeShift.lng);
                 cumulativeShift = desiredShift;
@@ -119,44 +169,163 @@ window.debugMap = map;
                 gridRotation = initialRotation + 360*mouseShift/map.getSize().x;
                 updateMarks();
             } else if (draggingMap) {
-                var dragOffset = map.layerPointToLatLng([ e.originalEvent.layerX, e.originalEvent.layerY ]);
+                var dragOffset = mapLatLng;
                 var desiredCentre = latlng(initialDragOffset.lat - dragOffset.lat + initialCentre.lat, initialDragOffset.lng - dragOffset.lng + initialCentre.lng);
                 map.setView(desiredCentre, map.getZoom(), { animate: false });
                 updateMarks();
+            } else {
+                mapLatLng = map.containerPointToLatLng([ e.originalEvent.layerX, e.originalEvent.layerY ]);
+                for (var i=0, foundCell=false; !foundCell && i<cells.length; i++) {
+                    var cell = cells[i];
+                    foundCell = pointWithinRect(mapLatLng.lng, mapLatLng.lat, cellRoughLLBox(cell));
+                }
+                if (foundCell) { cellCount.update(countLandmarks(cell)) }
             }
             });
 
         map.on("zoomend", updateMarks);
+        map.on("mouseout", function() { cellCount.update(0) });
 
         // for mouse wheel, we make our own zoom function
-        d3.select("#map").on("mousewheel", function(e) {
+        d3.select("#map").on("mousewheel", function() {
+            mouseWheelAccumulation += d3.event.wheelDelta;
+            if ((Math.abs(mouseWheelAccumulation)) < 120) return;
+            var direction = Math.sign(mouseWheelAccumulation);
+            mouseWheelAccumulation = 0;
+            
             if (d3.event.shiftKey) {
-                var sqr2 = Math.sqrt(2);
-                cellZoomFactor = Math.min(16, Math.max(1, cellZoomFactor*(d3.event.wheelDelta > 0 ? sqr2 : (1/sqr2))));
+                cellZoomLevel = Math.min(8, Math.max(0, effectiveCellZoom+direction));
+                //console.log("requested zoom (map, grid): ", map.getZoom(), cellZoomLevel);
                 updateMarks();
             } else {
-                //console.log(d3.event);
-                var newZoom = map.getZoom() + (d3.event.wheelDelta > 0 ? 1 : -1);
-                if (newZoom<minZoom) newZoom = minZoom;
+                var oldZoom = map.getZoom(), newZoom = oldZoom+direction;
+                if (newZoom<minZoom) return;
+
+                cellZoomLevel = effectiveCellZoom;
                 var zoomCentre = map.containerPointToLatLng([ d3.event.layerX, d3.event.layerY ]);
-                //console.log(zoomCentre);
+                //console.log("requested zoom (map, grid): ", newZoom, cellZoomLevel);
                 map.setZoomAround(zoomCentre, newZoom, { animate: false });
             }
+            });
+            
+        d3.select("#map").on("keydown", function() {
+            //console.log(d3.event.keyCode);
+            if (d3.event.keyCode===32) { hideMap = !hideMap; updateMarks() }
+            if (d3.event.keyCode===72 && cellType !== "hexagon") { cellType = "hexagon"; estimateLandmarkDensities(); updateMarks() }
+            if (d3.event.keyCode===83 && cellType !== "square") { cellType = "square"; estimateLandmarkDensities(); updateMarks() }
             });
             
         var mapElem = d3.select("#map"),
             clientRect = mapElem.node().getBoundingClientRect(),
             canvas = d3.select("body").append("canvas").attr("width", map.getSize().x).attr("height", map.getSize().y).attr("style", "position:absolute; top:"+clientRect.top+"px; left:"+clientRect.left+"px; pointer-events:none");
 
-		d3.json("../data/points/earthquakes2015.json", function(collection){
-            landmarks = collection;
+        var legend = L.control({position: 'bottomright'});
+        legend.onAdd = function (map) {
+            this._div = L.DomUtil.create('div', 'info legend');
+            return this._div;
+        };
+        // in the legend show 9 levels (from 0.11 to 1.0)
+        legend.update = function(cellZoom) {
+            var html = "<b>cell zoom: "+cellZoom+"</b><br><br>";
+            for (var i=1; i<10; i++) {
+                html +=
+                    '<i style="background:' + 'rgba(0, 0, 255, '+(i/9)+'"></i> ' + Math.round(gridOpacity.invert(i/9)) +
+                    (i===9 ? '' : '<br>');
+            }
+            this._div.innerHTML = html;
+        }
+        legend.addTo(map);
 
+        var cellCount = L.control({position: 'topright'});
+        cellCount.onAdd = function (map) {
+            this._div = L.DomUtil.create('div', 'count');
+            this.update(0);
+            return this._div;
+        };
+        cellCount.update = function(count) {
+            var numString = String(count);
+            for (var i=numString.length; i<5; i++) numString = "&nbsp;"+numString;
+            this._div.innerHTML = "<b>count:"+numString+"</b>";
+        }
+        cellCount.addTo(map);
+
+        function buildLandmarkRect() {
+            var latRange = d3.extent(landmarks.features, function(l) { return l.latlng.lat });
+            var lngRange = d3.extent(landmarks.features, function(l) { return l.latlng.lng });
+            landmarkRect = [lngRange[0], latRange[0], lngRange[1], latRange[1]];
+        }
+    
+        function estimateLandmarkDensities() {
+            // estimate the landmarks-per-cell density for each cell zoom level.
+            // to keep the number of cells within reason, start by using the coarsest cells then for subsequent
+            // measurements only use the region of what turned out to be the most populated of those cells.
+            var mapRect = landmarkRect;
+            var dataPoints = [];
+            for (var cz=maxCellZoom; cz>=0; cz--) {
+                var mapCentre = latlng((mapRect[1]+mapRect[3])/2, (mapRect[0]+mapRect[2])/2);
+                var tempCells = buildPolygons(cellType, cz, mapRect, mapCentre);
+                //console.log("temp cells: "+tempCells.length);
+                var maxC = 0;
+                tempCells.forEach(function(cell) {
+                    var c = countLandmarks(cell);
+                    if (c>maxC) {
+                        maxC=c;
+                        if (cz===maxCellZoom) mapRect=cellRoughLLBox(cell); // first time through, record the most populous
+                    }
+                    });
+                dataPoints.push([cz, maxC/Math.pow(2, cz/2)]);
+                //console.log(cz, maxC);
+            }
+            
+            // use linear regression to figure out a typical density (landmarks per unit area), and store these for each cell zoom
+            var lin = ss.linearRegressionLine(ss.linearRegression(dataPoints));
+            for (var cz=maxCellZoom; cz>=0; cz--) {
+                var estimate = Math.round(lin(cz)*Math.pow(2, cz/2));
+                cellDensities[cz] = estimate;
+                //console.log(cz, estimate)
+            }
+        }
+
+/*
+		d3.json("restaurants2.json", function(collection){
+            landmarks = collection;
             landmarkRTree.geoJSON(landmarks);
 
             // add to each landmark a coordinate in our lat/long object format (which Leaflet understands)
-			landmarks.features.forEach(function(d){ d.latlng = latlng(d.lat, d.lon)})
+			landmarks.features.forEach(function(d){ d.latlng = latlng(d.geometry.coordinates[1], d.geometry.coordinates[0])});
+            buildLandmarkRect();
             updateMarks();
             });
+*/
+
+        d3.text("../data/points/2014earthquakes.catalog", function(contents) {
+            //rows=d.split("\n").filter(function(row) { return row.length>0 && row.substring(0,1) !== "#" }).join("\n");
+            //console.log(d3.dsv(" ", "text/plain").formatRows(rows));
+            //console.log(d3.dsv(" ").parseRows(contents, function(line) { return (line.length>0 && line.substring(0,1) !== "#") ? line: null }));
+            var allRows = d3.dsv(" ").parseRows(contents);
+            var features = [];
+            function nthNonEmpty(fields, n) {
+                var i=0, field=0;
+                do { if (fields[i].length>0) field++; i++ }
+                while (field<n && i<fields.length);
+                return fields[--i];
+            }
+            var idNum=0;
+            allRows.forEach(function (fields) {
+                if (fields[0].length > 0 && fields[0].substring(0,1) !== "#") {
+                    var lat = Number(nthNonEmpty(fields, 6)), lng = Number(nthNonEmpty(fields, 7));
+                    if (isNaN(lat) || isNaN(lng)) debugger;
+                    features.push({ type: "Feature", geometry: { type: "Point", coordinates: [ lng, lat ] }, latlng: latlng(lat, lng) });
+                }
+            });
+            landmarks = { type: "FeatureCollection", features: features };
+            landmarkRTree.geoJSON(features);
+            buildLandmarkRect();
+            estimateLandmarkDensities();
+            updateMarks();
+            document.getElementById("map").focus();
+            document.addEventListener('mousewheel', function(evt) { evt.preventDefault() });
+        });
 
         function updateMarks() {
             // move landmarks and grid to line up with a moved or zoomed map
@@ -164,10 +333,10 @@ window.debugMap = map;
             //   figure out the centroid offset for the centre cell
             //     (a) if this is the first time through, use (0, 0)
             //     (b) otherwise find whichever existing cell contains the map centre, and find the offset of its centroid
-            
+            mapTiles.setOpacity(hideMap ? 0.2 : 1);
             mapOffset = map.getCenter();
             var mapBounds = map.getBounds();
-            mapRect = [mapBounds.getWest(), mapBounds.getSouth(), mapBounds.getEast(), mapBounds.getNorth()];
+            var viewRect = [mapBounds.getWest(), mapBounds.getSouth(), mapBounds.getEast(), mapBounds.getNorth()];
             
             // the grid centroid is by definition the centroid of the central grid cell.
             // to avoid distortion if the user scrolls the map far away from its original centre, we re-centre the grid
@@ -188,10 +357,29 @@ window.debugMap = map;
                 gridOffset = latlng(gridOffset.lat+gridShift.lat, gridOffset.lng+gridShift.lng);
                 gridShift = null;
             }
-            cacheT = null;  // force rebuild of transform coefficients
+            
+            // boost cell zoom if needed to ensure we have no more than 100 across the screen
+            var lngRange = viewRect[2]-viewRect[0];
+            if (lngRange<0) lngRange += 360;
+            var minUsefulZoomFactor = lngRange/100/minCellWidth;
+            effectiveCellZoom = cellZoomLevel;
+            while (Math.pow(2, effectiveCellZoom/2)<minUsefulZoomFactor) { effectiveCellZoom += 1 };
+            if (effectiveCellZoom!==cellZoomLevel) console.log("cell zoom boosted to "+effectiveCellZoom);
+            
+            // set the opacity scale such that at the sampled maximum the opacity is 0.9
+            var sampledMax = cellDensities[effectiveCellZoom];
+            gridOpacity = d3.scale.log().domain([Math.max(sampledMax/100, 1), sampledMax]).range([0.1, 0.9]);
+            legend.update(effectiveCellZoom);
+            
+            // switch to precise mode if there are likely to be fewer than 50 cells across the screen
+            var bePrecise = lngRange/(minCellWidth*Math.pow(2, effectiveCellZoom/2))<=50;
+            if (bePrecise !== usePreciseGrid) {
+                usePreciseGrid = bePrecise;
+                //console.log("Precision: "+ (bePrecise ? "ON" : "OFF"))
+            }
 
-            //console.log("update marks:", mapOffset, zoom);
-            cells = buildPolygons(cellType);
+            // and now build the polygons!
+            cells = buildPolygons(cellType, effectiveCellZoom, viewRect, gridOffset);
             //console.log(cells.length+" cells");
             //cells[0].highlight = true;
 
@@ -200,15 +388,21 @@ window.debugMap = map;
             var ctx = canvas.node().getContext("2d");
             ctx.clearRect(0, 0, canvas.node().width, canvas.node().height);
             
+            // draw all the landmarks that are visible
             ctx.fillStyle = "rgba(255, 0, 0, "+opacityForZoom(zoom)+")";
             var radius = radiusForZoom(zoom);
             landmarks.features.forEach(function(landmark) {
-                var xy = map.latLngToContainerPoint(landmark.latlng);
-                ctx.beginPath();
-                ctx.arc(xy.x, xy.y, radius, 0, 2*Math.PI);
-                ctx.fill();
+                var ll = landmark.latlng;
+                if (pointWithinRect(ll.lng, ll.lat, viewRect)) {
+                    var xy = map.latLngToContainerPoint(ll);
+                    ctx.beginPath();
+                    ctx.arc(xy.x, xy.y, radius, 0, 2*Math.PI);
+                    ctx.fill();
+                }
                 });
-                
+
+            // then draw and shade the grid
+            //var landmarkThreshold = cellDensities[effectiveCellZoom]*cellDensityAllowance;
             cells.forEach(function(cell) {
                 var vertices = cellContainerVertices(cell);
                 ctx.strokeStyle = "#888";
@@ -220,7 +414,8 @@ window.debugMap = map;
                 ctx.stroke();
                 var landmarkCount = countLandmarks(cell);
                 if (landmarkCount>0 || cell.highlight) {
-                    ctx.fillStyle = cell.highlight ? "#F00" : "rgba(0, 0, 255, "+landmarkCount*0.1+")";
+                    //ctx.fillStyle = (cell.highlight || landmarkCount>landmarkThreshold) ? "#FF0" : "rgba(0, 0, 255, "+gridOpacity(landmarkCount)+")";
+                    ctx.fillStyle = cell.highlight ? "#FF0" : "rgba(0, 0, 255, "+Math.min(1, gridOpacity(landmarkCount))+")";
                     ctx.fill();
                 }
                 });
@@ -228,8 +423,8 @@ window.debugMap = map;
 
         function transformLatLong(originLong, originLat, rotation, relativeLong, relativeLat) {
             var conv = Math.PI/180;
-            if (!cacheT) {
-                cacheT = {};
+            if (originLong !== cacheT.originLong || originLat !== cacheT.originLat || rotation !== cacheT.rotation) {
+                cacheT.originLong = originLong, cacheT.originLat = originLat, cacheT.rotation = rotation,
                 cacheT.sinA = Math.sin(originLong*conv), cacheT.cosA = Math.cos(originLong*conv),
                 cacheT.sinB = Math.sin(originLat*conv), cacheT.cosB = Math.cos(originLat*conv),
                 cacheT.sinG = Math.sin(rotation*conv), cacheT.cosG = Math.cos(rotation*conv);
@@ -248,93 +443,95 @@ window.debugMap = map;
             return { lat: lat, lng: lng }
         }
         
-        function buildPolygons(type) {
-            var polys;
-            
-            // limit cell zoom if needed to ensure we have no more than 100 across the screen
-            var lngRange = mapRect[2]-mapRect[0];
-            if (lngRange<0) lngRange += 360;
-            var minUsefulZoomFactor = lngRange/100/minCellWidth;
-            var factor = cellZoomFactor;
-            while (factor<minUsefulZoomFactor) factor*=Math.sqrt(2);
-            
-            var cellWidth = minCellWidth*factor;
+        function buildPolygons(type, cellZoom, mapRect, gridCentre) {
+            var unitLength;
+            var cellWidth = minCellWidth*Math.pow(2, cellZoom/2);
+            var vertexOffsets, centroidOffsets;
             switch(type) {
                 case "square":
-                    polys = buildSquares(unitLength, gridOffset, gridRotation, mapRect);
+                    unitLength = cellWidth/2.5;  // fudge factor
+                    xFactor = unitLength; yFactor = unitLength;
+                    vertexOffsets = [ pt(-1, 1), pt(1,1), pt(1, -1), pt(-1, -1) ];
+                    centroidOffsets = [ pt(0, 2), pt(2, 0), pt(0, -2), pt(-2, 0) ];
                     break;
                 case "hexagon":
-                    var unitLength = cellWidth/4;
-                    polys = buildHexagons(unitLength, gridOffset, gridRotation, mapRect);
+                    unitLength = cellWidth/4;
+                    xFactor = unitLength; yFactor = unitLength*Math.sqrt(3);
+                    vertexOffsets = [ pt(-1, 1), pt(1,1), pt(2, 0), pt(1, -1), pt(-1, -1), pt(-2, 0) ];
+                    centroidOffsets = [ pt(0, 2), pt(3, 1), pt(3, -1), pt(0, -2), pt(-3, -1), pt(-3, 1) ];
                     break;
             }
-            return polys;
-        }
-
-        function buildHexagons(size, origin, rotation, mapRect) {
-            var hexagons = [];
-            var points = {};
-            var seeds = [];
-            var sqr3 = Math.sqrt(3);
-            // procedure:
-            //   create central hexagon.  add to hexagons list, and its centroid coord as sole entry in "seeds" queue.
-            //   repeat until seeds list is empty
-            //     remove first seed from list
-            //     for each of seed's six growing directions
-            //       if no (centroid) point in the specified direction
-            //         add a hexagon with this centroid to the polygons list
-            //         iff new hexagon's centroid is within map bounds, add centroid to the seed list
             
-            var vertexOffsets = [ pt(-1, 1), pt(1,1), pt(2, 0), pt(1, -1), pt(-1, -1), pt(-2, 0) ];
-            var centroidOffsets = [ pt(0, 2), pt(3, 1), pt(3, -1), pt(0, -2), pt(-3, -1), pt(-3, 1) ];
-
-            function assurePoint(x, y) {
+            function assurePoint(x, y, alwaysReturn) {
                 var key = x*1024+y;
-                if (points[key]) return null;        // already there; caller has nothing to do
+                var pt = points[key];
+                if (pt) return alwaysReturn ? pt : null;        // some callers only want the point if it wasn't there before
 
-                var pt = points[key] = { x: x, y: y };
-                var ll = transformLatLong(origin.lng, origin.lat, rotation, x*size, y*size*sqr3);
+                pt = points[key] = { x: x, y: y };
+                var ll = transformLatLong(gridCentre.lng, gridCentre.lat, gridRotation, x*xFactor, y*yFactor);
                 pt.lng = ll.lng, pt.lat = ll.lat;
                 var containerPt = map.latLngToContainerPoint(ll);
                 pt.containerX = containerPt.x, pt.containerY = containerPt.y;
                 return pt;
             }
 
-            function buildHex(centroid) {
-                // not much for us to do these days.  vertices will be derived from the base cell.
+            function buildPoly(centroid) {
                 var poly = { centroid: centroid };
-                hexagons.push(poly);
+                if (usePreciseGrid) {
+                    poly.vertices = vertexOffsets.map(function(p) { return assurePoint(p.x+centroid.x, p.y+centroid.y, true) });
+                    var latExtent = d3.extent(poly.vertices, function(p) { return p.lat });
+                    var lngExtent = d3.extent(poly.vertices, function(p) { return p.lng });
+                    poly.llBox = [ lngExtent[0], latExtent[0], lngExtent[1], latExtent[1] ];
+                }
+                polygons.push(poly);
                 return poly;
             }
 
-            var o = assurePoint(0, 0);
-            baseCell = buildHex(o);
-            baseCell.vertexLLOffsets = [];
-            baseCell.vertexContainerOffsets = [];
-            vertexOffsets.forEach(function(p) {
-                var llOffset = latlng(p.y*size*sqr3, p.x*size);
-                var ll = transformLatLong(origin.lng, origin.lat, rotation, llOffset.lng*100, llOffset.lat*100);
-                baseCell.vertexLLOffsets.push(latlng((ll.lat-origin.lat)/100, (ll.lng-origin.lng)/100));
-                var containerPt = map.latLngToContainerPoint(ll);
-                baseCell.vertexContainerOffsets.push(pt((containerPt.x-o.containerX)/100, (containerPt.y-o.containerY)/100))
-                });
-            var latExtent = d3.extent(baseCell.vertexLLOffsets, function(p) { return p.lat });
-            var lngExtent = d3.extent(baseCell.vertexLLOffsets, function(p) { return p.lng });
-            baseCell.llBoxOffsets = [ lngExtent[0], latExtent[0], lngExtent[1], latExtent[1] ];
+            // procedure:
+            //   create central polygon.  add to polygons list, and its centroid coord as sole entry in "seeds" queue.
+            //   repeat until seeds list is empty
+            //     remove first seed from list
+            //     for each of seed's six growing directions
+            //       if no (centroid) point in the specified direction
+            //         add a polygon with this centroid to the polygons list
+            //         iff new polygon's centroid is within map bounds, add centroid to the seed list
+
+            var polygons = [];
+            var points = {};
+            var seeds = [];
+
+            var o = assurePoint(0, 0, true);
+            baseCell = buildPoly(o);
+            // if we're not using precise coords, store shape information only in the central polygon
+            if (!usePreciseGrid) {
+                baseCell.vertexLLOffsets = [];
+                baseCell.vertexContainerOffsets = [];
+                vertexOffsets.forEach(function(p) {
+                    var llOffset = latlng(p.y*yFactor, p.x*xFactor);
+                    var ll = transformLatLong(gridCentre.lng, gridCentre.lat, gridRotation, llOffset.lng*5, llOffset.lat*5);
+                    baseCell.vertexLLOffsets.push(latlng((ll.lat-gridCentre.lat)/5, (ll.lng-gridCentre.lng)/5));
+                    var containerPt = map.latLngToContainerPoint(ll);
+                    baseCell.vertexContainerOffsets.push(pt((containerPt.x-o.containerX)/5, (containerPt.y-o.containerY)/5))
+                    });
+                var latExtent = d3.extent(baseCell.vertexLLOffsets, function(p) { return p.lat });
+                var lngExtent = d3.extent(baseCell.vertexLLOffsets, function(p) { return p.lng });
+                baseCell.llBoxOffsets = [ lngExtent[0], latExtent[0], lngExtent[1], latExtent[1] ];
+            }
             seeds.push(o);
 
             while (seeds.length>0) {
                 var centroid = seeds.shift();
                 centroidOffsets.forEach(function(offset) {
                     var newX = centroid.x + offset.x, newY = centroid.y + offset.y;
-                    var newCentroid = assurePoint(newX, newY);
+                    var newCentroid = assurePoint(newX, newY, false);  // only return the point if it's new
                     if (newCentroid) {
-                        buildHex(newCentroid);
+                        buildPoly(newCentroid);
                         if (pointWithinRect(newCentroid.lng, newCentroid.lat, mapRect)) seeds.push(newCentroid);
                     }
                     })
             }
-            return hexagons;
+            
+            return polygons;
         }
 
         function countLandmarks(cell) {
