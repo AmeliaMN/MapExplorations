@@ -1,0 +1,9 @@
+base
+knitr
+ggplot2
+ggmap
+sp
+rgdal
+dplyr
+rgeos
+maptools
