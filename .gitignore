@@ -4,7 +4,6 @@
 .Rproj.user
 
 #Specific data
-/data/shapes/CAMS_ZIPCODE_PARCEL_SPECIFIC/*
 !/data/shapes/ConversionStuff
 /R/InitialExplorations_files
 /R/InitialExplorations_cache
