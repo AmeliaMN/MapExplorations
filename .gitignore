@@ -4,7 +4,8 @@
 .Rproj.user
 
 #Specific data
-/data/shapes/*
+/data/shapes/CAMS_ZIPCODE_PARCEL_SPECIFIC/*
+/data/shapes/LANeighborhoodCouncils/*
 !/data/shapes/ConversionStuff
 /R/InitialExplorations_files
 /R/InitialExplorations_cache
