@@ -1,8 +1,15 @@
 install.packages('pycno')
 install.packages("rgeos")
+
+require(dplyr)
 require(rgeos)
 require(pycno)
 require(sp)
+require(rgdal)
+require(maptools)
+require(ggplot2)
+
+
 # Read in data for North Carolina as a SpatialPolygonsDataFrame (Don't understand this code!)
 nc.sids <- readShapeSpatial(system.file("shapes/sids.shp", package="maptools")[1],
                             IDvar="FIPSNO", proj4string=CRS("+proj=longlat +ellps=clrk66"))
@@ -24,14 +31,13 @@ map1 <- ggmap(map1)
 map1
 
 
-require(ggplot2)
-require(dplyr)
+
 nc.sids@data$id = rownames(nc.sids@data)
 nc.sids.points = fortify(nc.sids, region="id")
 nc.sids.df = inner_join(nc.sids.points,nc.sids@data, by="id")
 nc.sids <- spTransform(nc.sids, CRS("+proj=longlat +datum=WGS84"))
 
-plainpolys <- map1 + geom_polygon(aes(x=long, y=lat, group=id,fill=BIR74), size=.2, color='black', 
+plainpolys <- geom_polygon(aes(x=long, y=lat, group=id,fill=BIR74), size=.2, color='black', 
                                   data=nc.sids.df) + scale_fill_brewer(palette="Dark2")
 plainpolys
 
