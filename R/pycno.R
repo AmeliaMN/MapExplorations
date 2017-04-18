@@ -72,3 +72,27 @@ births74 <- pycno(nc.sids,nc.sids$BIR74,0.05,converge=1)
 image(births74)
 # Overlay North Carolina county boundaries for reference
 plot(nc.sids,add=TRUE)
+
+
+## Checking in on the internals of the function
+pfi2 <- SpatialPoints(coordinates(data.frame(births74)[, 2:3]))
+proj4string(pfi2) <- CRS(proj4string(births74))
+temp <- gContains(blocks, pfi2, byid = TRUE)
+tapply(data.frame(births74)[, 1], apply(temp, 1, which),  sum)
+
+# this works
+length(data.frame(births74)[, 1]) # 5044
+dim(temp) #5044 4
+
+## Try again with our data
+
+pfi2 <- SpatialPoints(coordinates(data.frame(NEcounties.pop2010)[, 2:3]))
+proj4string(pfi2) <- CRS(proj4string(NEcounties.pop2010))
+temp <- gContains(NEdistricts, pfi2, byid = TRUE)
+tapply(data.frame(NEcounties.pop2010)[, 1], apply(temp, 1, which), sum)
+
+# this does not work
+length(data.frame(NEcounties.pop2010)[, 1]) # 7707
+dim(temp) # 7707 21
+
+## What is wrong?!
