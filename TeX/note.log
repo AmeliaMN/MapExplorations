@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  24 JUL 2017 17:17
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  24 JUL 2017 17:28
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -192,26 +192,25 @@ LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <6> not available
 (Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 65.
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <7> on input line 68.
+ [1
 
-<../img/choropleth.jpg, id=1, 1087.06125pt x 633.36626pt>
+{/usr/local/texlive/2015/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
+<../img/choropleth.jpg, id=15, 1087.06125pt x 633.36626pt>
 File: ../img/choropleth.jpg Graphic file (type jpg)
 
 <use ../img/choropleth.jpg>
 Package pdftex.def Info: ../img/choropleth.jpg used on input line 79.
 (pdftex.def)             Requested size: 345.0pt x 201.0094pt.
- [1
 
-{/usr/local/texlive/2015/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] <../img
-/1895.png, id=16, 775.89874pt x 908.39375pt>
+<../img/1895.png, id=16, 775.89874pt x 908.39375pt>
 File: ../img/1895.png Graphic file (type png)
-
-<use ../img/1895.png>
+ <use ../img/1895.png>
 Package pdftex.def Info: ../img/1895.png used on input line 88.
 (pdftex.def)             Requested size: 187.90067pt x 219.99664pt.
- <../img/wren.jpg, id=18, 614.295pt x 524.96124pt>
-File: ../img/wren.jpg Graphic file (type jpg)
 
-<use ../img/wren.jpg>
+<../img/wren.jpg, id=18, 614.295pt x 524.96124pt>
+File: ../img/wren.jpg Graphic file (type jpg)
+ <use ../img/wren.jpg>
 Package pdftex.def Info: ../img/wren.jpg used on input line 95.
 (pdftex.def)             Requested size: 257.43036pt x 219.99664pt.
 
@@ -232,14 +231,15 @@ File: ../img/gerrymandering.jpg Graphic file (type jpg)
 
 <use ../img/gerrymandering.jpg>
 Package pdftex.def Info: ../img/gerrymandering.jpg used on input line 124.
-(pdftex.def)             Requested size: 345.0pt x 259.07576pt.
- [4 <../img/MAUPZone1.jpg>] [5 <../img/gerrymandering.jpg>] <../img/tool.png, i
-d=34, 965.6075pt x 503.8825pt>
+(pdftex.def)             Requested size: 276.00105pt x 207.25877pt.
+ [4 <../img/MAUPZone1.jpg>]
+<../img/tool.png, id=31, 965.6075pt x 503.8825pt>
 File: ../img/tool.png Graphic file (type png)
-
-<use ../img/tool.png>
+ <use ../img/tool.png>
 Package pdftex.def Info: ../img/tool.png used on input line 144.
 (pdftex.def)             Requested size: 345.0pt x 180.02898pt.
+
+[5 <../img/gerrymandering.jpg>]
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
 (Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 155.
  [6 <../img/tool.png>] [7] (./note.bbl
@@ -254,33 +254,40 @@ Underfull \hbox (badness 10000) in paragraph at lines 35--40
 [] choropleths -[]
  []
 
-) [8
 
-] (./note.aux) ) 
+Underfull \hbox (badness 1024) in paragraph at lines 70--73
+[]\OT1/cmr/m/n/10 Aran Lun-zer and Amelia Mc-Na-mara.  Ex-plor-ing his-tograms.
+  $\OT1/cmtt/m/n/10 http : / /
+ []
+
+[8
+
+]) [9] (./note.aux) ) 
 Here is how much of TeX's memory you used:
- 2216 strings out of 493089
- 31005 string characters out of 6134842
- 93659 words of memory out of 5000000
- 5665 multiletter control sequences out of 15000+600000
+ 2228 strings out of 493089
+ 31209 string characters out of 6134842
+ 94814 words of memory out of 5000000
+ 5677 multiletter control sequences out of 15000+600000
  8801 words of font info for 31 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  38i,6n,27p,671b,313s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts
-/cm/cmbx10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/
-cm/cmbx12.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/c
-m/cmr10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/
-cmr12.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cm
-r17.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8
-.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.
-pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pf
-b></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb>
-</usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb><
-/usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb></
-usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
-Output written on note.pdf (8 pages, 1086493 bytes).
+</usr/local/texlive/2015/texmf-dist/fonts/type1/public/ams
+fonts/cm/cmbx10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsf
+onts/cm/cmbx12.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfo
+nts/cm/cmr10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfont
+s/cm/cmr12.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/
+cm/cmr17.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm
+/cmr8.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cm
+sy10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cms
+y6.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8
+.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.
+pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.p
+fb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pf
+b>
+Output written on note.pdf (9 pages, 1089945 bytes).
 PDF statistics:
- 88 PDF objects out of 1000 (max. 8388607)
- 57 compressed objects within 1 object stream
+ 91 PDF objects out of 1000 (max. 8388607)
+ 59 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  31 words of extra memory for PDF output out of 10000 (max. 10000000)
 

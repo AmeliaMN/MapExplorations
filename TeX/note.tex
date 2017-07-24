@@ -70,9 +70,9 @@ In this note, we present a fun tool that allows a user to manipulate the size an
 \section{Background}
 Aggregated data is notoriously hard for novices to grasp~\citep{KonHigRus2014, HanKap1992}. However, it is used in many situations, both symbolic (the mean) and visual (the histogram). 
 
-When we began showing our LivelyR prototypes to statisticians and teachers, we were met with excitement about the ability to simply manipulate the bin width and bin offset of a histogram. Also popular was the `histogram cloud' feature that superimposed a set of slightly different histograms of the same data~\citep{McN2015b}. Both interactions give a user the ability to easily manipulate parameters that they often would leave as defaults, and compare the results of different parameter choices. 
+When we began showing our LivelyR~\citep{LunMcN2014b} prototypes to statisticians and teachers, we were met with excitement about the ability to simply manipulate the bin width and bin offset of a histogram. Also popular was the `histogram cloud' feature that superimposed a set of slightly different histograms of the same data~\citep{McN2015b}. Both interactions give a user the ability to easily manipulate parameters that they often would leave as defaults, and compare the results of different parameter choices. This enthusiasm led us to create an interactive essay about histograms~\citep{LunMcN2017}. 
 
-Based on this popularity, I began thinking about a 2-dimensional analogue, particularly in the context of spatial data. The context that came easily to mind was the choropleth map. Choropleth maps divide area into polygons, colored by the value of a parameter measured or estimated in that area. Figure~\ref{choropleth} is a modern choropleth map, showing income disparities from average by county, over the United States~\citep{AisBut2015}. 
+Given the popularity of our work about the impact of parameter choices on 1-dimensional distributions, we began thinking about a 2-dimensional analogue. The most natural case was mapmaking and spatial data. One common way to depict spatial data is a choropleth map, which divide area into polygons, colored by the value of a parameter measured or estimated in that area. Figure~\ref{choropleth} is a modern choropleth map, showing income disparities from average by county, over the United States~\citep{AisBut2015}. 
 
 \begin{figure}[htbp]
 \begin{centering}
@@ -121,7 +121,7 @@ Notice that I am saying ``imagine" and ``like." This is because there are supris
 
 \begin{figure}[htbp]
 \begin{centering}
-\includegraphics[width=\textwidth]{../img/gerrymandering}
+\includegraphics[width=0.8\textwidth]{../img/gerrymandering}
 \caption{``The best explanation of gerrymandering you will ever see,'' from \cite{Ing2015}.}\label{gerrymandering}
 \end{centering}
 \end{figure}
@@ -160,6 +160,10 @@ Interaction controls, as they stand now:
 \item \textbf{Shift} + \textbf{scroll wheel} zooms the size of the polygons in or out
 \item \textbf{option} + \textbf{scroll} (side to side) rotates the polygons. 
 \end{itemize}
+
+\section{Use of the tool}
+The tool has been demoed at OpenVisConf twice, most notably in McNamara's talk, ``How Spatial Polygons Shape Our World''~\citep{McN2016f, McN2017}. 
+
 
 \section{Further work}
 
