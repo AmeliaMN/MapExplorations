@@ -54,13 +54,13 @@
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \begin{document}
 \title{Exploring the effects of spatial aggregation}
-\author[1,2]{Amelia McNamara%
-\thanks{amcnamara@smith.edu}}
-\author[1,3]{Aran Lunzer%
-\thanks{aran@acm.org}}
-\affil[1]{Communications Design Group, SAP Labs}
-\affil[2]{Smith College}
-\affil[3]{Viewpoints Research Institute}
+\author[1]{Amelia McNamara%
+\thanks{Some work completed while the author was partially funded by the Communications Design Group, SAP Labs. Contact: amcnamara@smith.edu}}
+\author[2]{Aran Lunzer%
+\thanks{Contact: aran@acm.org}}
+\affil[1]{Smith College}
+\affil[2]{Viewpoints Research Institute}
+\date{May 2017}
 
 \maketitle
 
@@ -70,7 +70,7 @@ In this note, we present a fun tool that allows a user to manipulate the size an
 \section{Background}
 Aggregated data is notoriously hard for novices to grasp~\citep{KonHigRus2014, HanKap1992}. However, it is used in many situations, both symbolic (the mean) and visual (the histogram). 
 
-When we began showing our LivelyR~\citep{LunMcN2014b} prototypes to statisticians and teachers, we were met with excitement about the ability to simply manipulate the bin width and bin offset of a histogram. Also popular was the `histogram cloud' feature that superimposed a set of slightly different histograms of the same data~\citep{McN2015b}. Both interactions give a user the ability to easily manipulate parameters that they often would leave as defaults, and compare the results of different parameter choices. This enthusiasm led us to create an interactive essay about histograms~\citep{LunMcN2017}. 
+When we began showing our LivelyR~\citep{LunMcN2014b} prototypes to statisticians and teachers, we were met with excitement about the ability to simply manipulate the bin width and bin offset of a histogram. Also popular was the `histogram cloud' feature that superimposed a set of slightly different histograms of the same data~\citep{McN2015}. Both interactions give a user the ability to easily manipulate parameters that they often would leave as defaults, and compare the results of different parameter choices. This enthusiasm led us to create an interactive essay about histograms~\citep{LunMcN2017}. 
 
 Given the popularity of our work about the impact of parameter choices on 1-dimensional distributions, we began thinking about a 2-dimensional analogue. The most natural case was mapmaking and spatial data. One common way to depict spatial data is a choropleth map, which divide area into polygons, colored by the value of a parameter measured or estimated in that area. Figure~\ref{choropleth} is a modern choropleth map, showing income disparities from average by county, over the United States~\citep{AisBut2015}. 
 
