@@ -4,6 +4,7 @@
 .Rproj.user
 
 #Specific data
+/data/shapes/*
 !/data/shapes/ConversionStuff
 /R/InitialExplorations_files
 /R/InitialExplorations_cache
