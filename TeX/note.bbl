@@ -16,6 +16,10 @@ Peter~M Atkinson.
 \newblock \emph{International Journal of Applied Earth Observation and
   Geoinformation}, 22:\penalty0 106--114, 2013.
 
+\bibitem[{Author Citation}(2015)]{McN2015b}
+{Author Citation}.
+\newblock Title, 2015.
+
 \bibitem[Cohn(2015)]{Coh2015}
 Nate Cohn.
 \newblock Voting case has potential to put house further out of reach for
@@ -68,12 +72,6 @@ Brandon Martin-Anderson.
 \newblock \url{http://conveyal.com/blog/2014/04/08/aggregate-disser/}, April
   2014.
 
-\bibitem[McNamara(2015)]{McN2015b}
-Amelia McNamara.
-\newblock \emph{Bridging the Gap Between Tools for Learning and for Doing
-  Statistics}.
-\newblock PhD thesis, University of California, Los Angeles, June 2015.
-
 \bibitem[{Penn State GEOG 486}(2014)]{Pen2014}
 {Penn State GEOG 486}.
 \newblock Choropleth maps.
@@ -85,6 +83,6 @@ Brian Sullivan, Steven~T Kelling, Christopher Wood, Marshall Iliff, Daniel
   Fink, Mark Herzog, Doug Moody, and Grant Ballard.
 \newblock Data exploration through visualization tools.
 \newblock \emph{Proceedings of the fourth international partners in flight
-  conference: Tundra to topics}, pages 415--418, 2008.
+  conference: Tundra to tropics}, pages 415--418, 2008.
 
 \end{thebibliography}
