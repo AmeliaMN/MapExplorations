@@ -1,0 +1,220 @@
+---
+title: "Methods to Address the Change of Support and Modifiable Areal Unit Problems"
+author: "Smith students; \\ Advised by Amelia McNamara; \\ MTH 301 - Spring 2016"
+date: "May 8, 2016"
+header-includes:
+   - \usepackage{amsmath}
+   - \usepackage{array}
+   - \usepackage{longtable}
+output:
+  html_document:
+    highlight: pygments
+    theme: cerulean
+  pdf_document: default
+---
+
+### Abstract 
+
+Spatial data are commonly collected and studied in fields such as geology, ecology, and the social sciences. Researchers often cull data from a variety of sources, which may not contain values from compatible regions. This process raises questions as to how to aggregate the data from incompatible spatial regions (source units) in order to make statistical inference about data in the regions of interest (target units). The preferred method of determining the aggregated values for (target units) remains unclear. In this paper, we explore known methods for making area-to-area spatial data compatible and apply one of these methods to New England population data.  
+
+### Introduction 
+
+Spatial statistics is a growing field with many complex unsolved problems. Spatial data is broad term used to describe the set of measurements paired with coordinates. Different types of spatial data include points, lines, areas, and surfaces. Examples of spatial data includes rainfall maps and percentage of voter participation shown by state. The nature of the spatial dimension give rise to variables that add complexity and makes spatial data analysis challenging. 
+
+Current technology allows researchers to collect, store, and share data more easily than ever before. Although there is a vast amount of data available, similar dataset are acquired through different sources are not consistent with one another. Presently there is no preferred method to work with datasets that are not compatible to make predictions and statistical inference.
+Different types of spatial data have attributes such as size, shape, volume, and orientation associated with them called the support. Data incompatibility describes the problem that occurs when the data collected is in a different spatial support then what is needed for the statistical analysis. This problem with incompatible spatial data is an important open problem in spatial statistical analysis called the change of support problem (COSP). 
+
+A specific COSP that we are interested in is the modifiable areal unit problem (MAUP), which addresses the effects of arbitrary boundaries around areal units, or aggregated spatial data. In some cases it is more meaningful to have aggregated units than point data for analysis.  The areal unit given in the spatial data that we are interested in is called the source unit and the areal unit in which we are interested in making inferences on is called the target unit. The two components to the MAUP are scaling effect and the zoning effect. The scaling effect occurs when the analytical result from data with different resolutions are inconsistent and the zoning effect occurs when the analytical result from data with different zoning systems are inconsistent. 
+
+Currently there is no solution for the problems with incompatible spatial data such as COSP and MAUP. In the next section, we review some known methods to this problem of incompatibility. Carol A. Gotway and Linda J. Young summarize and evaluate numerous methods in their 2002 paper, “Combining Incompatible Spatial Data”. 
+
+
+### Literature Review 
+
+Gotway introduced a few methods for making area-to-area spatial data compatible and 
+in this paper we would like elaborate on Pixel Aggregation, Areal Weighting, and Spatial Smoothing Functions. For Spatial Smoothing Functions we will go in-depth into the the pycnophylactic method with an example with R code.
+
+Before going into pixel aggregation, let’s first understand why spatial data aggregation is important. Spatial data aggregation is used for scaling environment analysis and modeling (Bian). Aggregation reduces the number of data units by combining units within the vicinity. Each aggregated data unit then represents a larger area than the original unit, which is why process of aggregation is also called scaling up. The spatial resolution refers to scale of the areal units. Data that is given in finer resolution may need to a aggregate to fit a larger scale that is appropriate for analysis. 
+
+The  general process of aggregation may alter the data and result in the lost of some information. There is no standard way to compare the effects of aggregation from different methods. One consequence of the aggregation effect is that analysis using the same data at different scales results in different outputs. It is unclear how to evaluate the effects. Using aggregation method without taking into account the potential effects from the alteration of the data would jeopardize the integrity of a study and subsequent steps in the process (Bian).
+ 	
+Although some information will be lost, aggregation can retain statistical characteristics of the data and thus is still can be a powerful tool. The error that is induced by aggregated data in a statistical model is called inherent error. Understanding the nature of the inherent error induced by aggregated data would allow researchers to make proper adjustments in the models. 
+ 	
+A study to understand the aggregating effect was done by Bian and Butler. They investigated three methods of aggregating spatial source data when the source units are within the target units which are averaging, central-pixel resampling, and median by looking at pixel aggregation. They aggregated a simulated pixel image on different scales using the three different methods. Bian and Butler are addressing the scaling effect of MAUP using pixel aggregation. 
+
+Their results showed that the average method preserves the mean on all aggregation levels. For this method the standard deviation decreases at a rate associated with the spatial autocorrelation.as the aggreagation scale increases. The reduced standard deviation would be a problem for statistical models that are sensitive to the range of variable values and would result in a significant error. The image also becomes homogeneous when the scale is beyond the spatial autocorrelation range. The median method is very similar to the average method, and Bian notes that the average method is the prefered of the two. The central-pixel does not preserve the mean and the standard deviation and is less predictable than the average and median method. For all three methods, integrity of aggregated data is influenced by the spatial autocorrelation range.
+
+(Still in progress: Areal Weighting and Spatial Smoothing Function left to talk about; citations need to be better inserted and formatted later)
+
+
+### Methods 
+
+(in progress, outline below + code)
+
+* Found R pycno package and applied to NC SIDs data in package to see how it works. 
+* Describe Measure of America data and briefly explain what we did with it/which parts of it we were interested in. 
+* Next section: go into detail about what was done including the data wrangling done before pycno is fitted?
+* Definitely show images throughout this section! 
+* Explain that we subsetted and then joined. 
+
+```{r, warning=FALSE, message = FALSE}
+#Load necessary packages
+require(rgeos)
+require(pycno)
+require(sp)
+require(dplyr)
+require(rgdal)
+require(stringr)
+require(ggplot2)
+require(RColorBrewer)
+```
+
+#### Loading, Subsetting, and Merging Data Files
+```{r, warning=FALSE}
+set.seed(789)
+###################
+# Load flat files #
+###################
+MoAcountydata <- read.csv("../data/points/MoA Data/counties13-14.csv")
+MoAcongressdata <- read.csv("../data/points/MoA Data/114thcongressionaldistrictdata.csv")
+
+###################
+# load shapefiles #
+###################
+
+counties <- readOGR("../data/shapes/gz_2010_us_050_00_5m", layer = "gz_2010_us_050_00_5m")
+c.districts <- readOGR("../data/shapes/cb_2014_us_cd114_5m", layer = "cb_2014_us_cd114_5m")
+
+#Spatial transform (not sure what this does)
+counties <- spTransform(counties, CRS("+proj=longlat +datum=WGS84"))
+c.districts <- spTransform(c.districts, CRS("+proj=longlat +datum=WGS84"))
+
+# Plot to see 
+plot(counties)
+plot(c.districts)
+
+###############################################
+# Subsetting to just New England Spatial Data #
+###############################################
+# Create vector of state code values in New England to filter spatial data first. 
+NewEng <- c("09", "23", "25", "33", "44", "50")
+
+# counties@data <- counties@data %>% filter(STATE %in% NewEng)
+# c.districts@data <- c.districts@data %>% filter(STATEFP %in% NewEng)
+
+NEcounties <- counties %>% subset(STATE %in% NewEng)
+NEdistricts <- c.districts %>% subset(STATEFP %in% NewEng)
+
+plot(NEcounties)
+plot(NEdistricts)
+
+###################################################
+# Join NEcounties and NEdistricts to the MoA data #
+###################################################
+MoAdistrict <- MoAcongressdata %>%
+  rename(GEOID = Number)
+MoAdistrict$GEOID <- str_pad(MoAdistrict$GEOID, 4, pad = "0")
+MoAdistrict$GEOID <- as.factor(MoAdistrict$GEOID)
+NEdistricts@data <- left_join(NEdistricts@data, MoAdistrict, by = "GEOID")
+
+#Fix Total.Population variable
+NEdistricts@data <- NEdistricts@data %>%
+  mutate(Total.Population = gsub("\t", "", Total.Population)) %>%
+  mutate(Total.Population = as.numeric(as.character(gsub(",", "", Total.Population))))
+
+plot(NEdistricts)
+
+#Counties 
+
+# First need to filter the data
+MoAcounty2010 <- MoAcountydata %>% 
+  filter(Year == "2010")
+
+# Need to combine state and county id in shapefile 
+NEcounties@data <- NEcounties@data %>%
+  mutate(FIPS = paste0(STATE, COUNTY))
+
+# Now add in leading 0 to flat file 
+MoAcounty2010$FIPS <- str_pad(MoAcounty2010$FIPS, 5, pad = "0")
+
+# Now join the data! 
+NEcounties@data <- left_join(NEcounties@data, MoAcounty2010, by = "FIPS")
+
+# Fix Total.Population variable 
+NEcounties@data <- NEcounties@data %>%
+  mutate(Total.Population = gsub("\t", "", Total.Population)) %>%
+  mutate(Total.Population = as.numeric(as.character(gsub(",", "", Total.Population))))
+
+plot(NEcounties)
+```
+
+
+```{r, warning=FALSE}
+set.seed(789)
+##########################################################
+# Looking at the choropleth maps, using Total.Population # 
+##########################################################
+# starting with counties 
+NEcounties@data$id = rownames(NEcounties@data)
+NEcounties.points = fortify(NEcounties, region="id")
+NEcounties.df = inner_join(NEcounties.points, NEcounties@data, by="id")
+NEcounties <- spTransform(NEcounties, CRS("+proj=longlat +datum=WGS84"))
+choropleth1 <- ggplot(data = NEcounties.df, aes(x=long, y = lat)) + 
+  geom_polygon(color = "black", aes(group = id, fill=Total.Population))
+
+
+# Now on districts 
+NEdistricts@data$id = rownames(NEdistricts@data)
+NEdistricts.points = fortify(NEdistricts, region="id")
+NEdistricts.df = inner_join(NEdistricts.points, NEdistricts@data, by="id")
+NEdistricts <- spTransform(NEdistricts, CRS("+proj=longlat +datum=WGS84"))
+choropleth2 <- ggplot(data = NEdistricts.df, aes(x=long, y = lat, group=id, fill=Total.Population)) + 
+  geom_polygon() + 
+  geom_path(colour="black", lwd=0.25) +
+  geom_polygon(data=subset(NEdistricts.df,STATEFP==23)) 
+choropleth2
+```
+
+```{r, warning=FALSE, results="hide"}
+############################################
+# attempt pycno code using Total.Population #
+############################################
+# Need to detach dplyr for pycno to work.  
+detach("package:dplyr", unload=TRUE) 
+# 
+NEcounties.pop2010 <- pycno(NEcounties, NEcounties$Total.Population, 0.05, converge = 3)
+NEdistricts.pop2010 <- pycno(NEdistricts, NEdistricts$Total.Population, 0.05, converge = 3)
+```
+
+
+### Results 
+
+(in progress, outline below + code)
+
+* What we hope to answer: How did the pycno package do on the New England data? 
+* Don’t know how to do: but we wanted to fit the smoothing curve over the counties data and then extrapolate the results to get estimates for the district level. And then see if that matches district level info we have??? Do we go the other way around too? Hmmm. (may have to table this into limitations part of discussion)
+* Images would be our results. Our results are weird. 
+
+```{r, warning=FALSE}
+# Plot choropleth maps 
+choropleth1
+choropleth2
+# Plot maps with smoothing function fit and polygon overlay 
+
+# Pycno images 
+image(NEcounties.pop2010, col=rev(brewer.pal(9, "Blues")))
+plot(NEcounties,add=TRUE)
+image(NEdistricts.pop2010, col=rev(brewer.pal(9, "Blues")))
+plot(NEdistricts, add=TRUE)
+```
+
+
+### Discussion
+
+(in progress, outline below + code)
+
+* Evaluate pycno. Talk about what we learned, what we didn’t/did accomplish, and what we hope to accomplish in the future. Talk about barriers/limitations and draw some conclusions about these methods meant to address the problems mentioned. 
+
+### References 
+
+(in progress)

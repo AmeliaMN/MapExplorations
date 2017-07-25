@@ -1,8 +1,15 @@
 install.packages('pycno')
 install.packages("rgeos")
+
+require(dplyr)
 require(rgeos)
 require(pycno)
 require(sp)
+require(rgdal)
+require(maptools)
+require(ggplot2)
+
+
 # Read in data for North Carolina as a SpatialPolygonsDataFrame (Don't understand this code!)
 nc.sids <- readShapeSpatial(system.file("shapes/sids.shp", package="maptools")[1],
                             IDvar="FIPSNO", proj4string=CRS("+proj=longlat +ellps=clrk66"))
@@ -24,14 +31,13 @@ map1 <- ggmap(map1)
 map1
 
 
-require(ggplot2)
-require(dplyr)
+
 nc.sids@data$id = rownames(nc.sids@data)
 nc.sids.points = fortify(nc.sids, region="id")
 nc.sids.df = inner_join(nc.sids.points,nc.sids@data, by="id")
 nc.sids <- spTransform(nc.sids, CRS("+proj=longlat +datum=WGS84"))
 
-plainpolys <- map1 + geom_polygon(aes(x=long, y=lat, group=id,fill=BIR74), size=.2, color='black', 
+plainpolys <- geom_polygon(aes(x=long, y=lat, group=id,fill=BIR74), size=.2, color='black', 
                                   data=nc.sids.df) + scale_fill_brewer(palette="Dark2")
 plainpolys
 
@@ -66,3 +72,27 @@ births74 <- pycno(nc.sids,nc.sids$BIR74,0.05,converge=1)
 image(births74)
 # Overlay North Carolina county boundaries for reference
 plot(nc.sids,add=TRUE)
+
+
+## Checking in on the internals of the function
+pfi2 <- SpatialPoints(coordinates(data.frame(births74)[, 2:3]))
+proj4string(pfi2) <- CRS(proj4string(births74))
+temp <- gContains(blocks, pfi2, byid = TRUE)
+tapply(data.frame(births74)[, 1], apply(temp, 1, which),  sum)
+
+# this works
+length(data.frame(births74)[, 1]) # 5044
+dim(temp) #5044 4
+
+## Try again with our data
+
+pfi2 <- SpatialPoints(coordinates(data.frame(NEcounties.pop2010)[, 2:3]))
+proj4string(pfi2) <- CRS(proj4string(NEcounties.pop2010))
+temp <- gContains(NEdistricts, pfi2, byid = TRUE)
+tapply(data.frame(NEcounties.pop2010)[, 1], apply(temp, 1, which), sum)
+
+# this does not work
+length(data.frame(NEcounties.pop2010)[, 1]) # 7707
+dim(temp) # 7707 21
+
+## What is wrong?!
