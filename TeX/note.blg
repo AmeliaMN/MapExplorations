@@ -1,46 +1,46 @@
-This is BibTeX, Version 0.99d (TeX Live 2015)
+This is BibTeX, Version 0.99d (TeX Live 2016)
 Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
 The top-level auxiliary file: note.aux
 The style file: plainnat.bst
-Database file #1: /Users/amcnamara/Dropbox/ReadingLibrary.bib.bib
-You've used 18 entries,
+Database file #1: /Users/amelia/Dropbox/ReadingLibrary.bib.bib
+You've used 16 entries,
             2773 wiz_defined-function locations,
-            695 strings with 7433 characters,
-and the built_in function-call counts, 6937 in all, are:
-= -- 596
-> -- 374
-< -- 14
-+ -- 132
-- -- 114
-* -- 482
-:= -- 1090
-add.period$ -- 54
-call.type$ -- 18
-change.case$ -- 91
-chr.to.int$ -- 18
-cite$ -- 36
-duplicate$ -- 333
-empty$ -- 608
-format.name$ -- 136
-if$ -- 1456
+            685 strings with 7200 characters,
+and the built_in function-call counts, 6282 in all, are:
+= -- 538
+> -- 343
+< -- 12
++ -- 121
+- -- 105
+* -- 446
+:= -- 991
+add.period$ -- 48
+call.type$ -- 16
+change.case$ -- 82
+chr.to.int$ -- 16
+cite$ -- 32
+duplicate$ -- 303
+empty$ -- 544
+format.name$ -- 123
+if$ -- 1314
 int.to.chr$ -- 1
 int.to.str$ -- 1
 missing$ -- 10
-newline$ -- 98
-num.names$ -- 72
-pop$ -- 209
+newline$ -- 88
+num.names$ -- 64
+pop$ -- 184
 preamble$ -- 1
-purify$ -- 74
+purify$ -- 67
 quote$ -- 0
-skip$ -- 264
+skip$ -- 236
 stack$ -- 0
-substring$ -- 133
-swap$ -- 35
+substring$ -- 129
+swap$ -- 32
 text.length$ -- 1
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 198
+type$ -- 176
 warning$ -- 0
-while$ -- 59
+while$ -- 53
 width$ -- 0
-write$ -- 229
+write$ -- 205
